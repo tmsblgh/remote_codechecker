@@ -1,0 +1,19 @@
+# Thrift generated files
+gen-py/
+
+# virtualenv
+venv/
+
+# OS generated files
+.DS_Store
+
+# log files
+*.log
+
+# object files
+server/*/
+server/*.o
+server/*.zip
+
+client/*/
+client/*.zip
