@@ -21,6 +21,9 @@ pylint: venv_dev
 
 check: pylint pycodestyle
 
+build_docker:
+	docker build -t remote_codechecker .
+
 clean_venv:
 	rm -rf venv
 
