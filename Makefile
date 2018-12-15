@@ -12,10 +12,14 @@ venv_dev:
 		$(ACTIVATE_DEV_VENV) && pip3 install -r $(VENV_DEV_REQ_FILE)
 
 pycodestyle: venv_dev
-	$(ACTIVATE_DEV_VENV) && pycodestyle server client
+	# ignore E402 module level import not at top of file
+	# because of 'sys.path.append('../gen-py')'
+	$(ACTIVATE_DEV_VENV) && pycodestyle -v --ignore=E402 server client
 
 pylint: venv_dev
-	$(ACTIVATE_DEV_VENV) && pylint server client
+	$(ACTIVATE_DEV_VENV) && pylint --exit-zero server client
+
+check: pylint pycodestyle
 
 clean_venv:
 	rm -rf venv

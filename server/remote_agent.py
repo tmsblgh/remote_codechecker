@@ -4,6 +4,8 @@
 Server for handling remote analyze requests with CodeChecker.
 """
 
+from __future__ import print_function
+
 import os
 import sys
 import uuid
@@ -49,12 +51,14 @@ class RemoteAnalyzeHandler:
                 if file == file_name:
                     file_path = os.path.join(root, file)
 
-        cmd = "CodeChecker check -b \"%s %s\" -o %s" % (run_command, file_path, (os.path.join(random_uuid, 'output')))
+        command = ["CodeChecker", "check"]
+        command.append("-b")
+        command.append("%s %s" % (run_command, file_path))
+        command.append("-o")
+        command.append("%s" % (os.path.join(random_uuid, 'output')))
 
-        print("Command: %s" % cmd)
-
-        process = subprocess.Popen(cmd,
-                                   shell=True,
+        process = subprocess.Popen(command,
+                                   stdout=subprocess.PIPE,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
 
