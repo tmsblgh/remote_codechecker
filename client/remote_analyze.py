@@ -9,6 +9,7 @@ from __future__ import print_function
 import sys
 import argparse
 import subprocess
+import logging
 from thrift import Thrift
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -17,6 +18,18 @@ from thrift.protocol import TBinaryProtocol
 sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
 from remote_analyze_api.ttypes import InvalidOperation
+
+LOGGER = logging.getLogger('SERVER')
+LOGGER.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+LOGGER.addHandler(ch)
+LOGGER.addHandler(fh)
 
 
 def main():
@@ -68,14 +81,14 @@ def main():
                 with open('output.zip', 'wb') as zipf:
                     zipf.write(response)
             except IOError:
-                print("Failed to write out received ZIP.")
+                LOGGER.error("Failed to write out received ZIP.")
         except InvalidOperation as exception:
-            print('InvalidOperation: %r' % exception)
+            LOGGER.error('InvalidOperation: %r' % exception)
 
         transport.close()
 
     except Thrift.TException as thrift_exception:
-        print('%s' % (thrift_exception.message))
+        LOGGER.error('%s' % (thrift_exception.message))
 
 
 if __name__ == "__main__":

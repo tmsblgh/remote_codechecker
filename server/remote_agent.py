@@ -10,6 +10,7 @@ import os
 import sys
 import uuid
 import subprocess
+import logging
 import zipfile
 from thrift.transport import TSocket
 from thrift.transport import TTransport
@@ -19,10 +20,22 @@ from thrift.server import TServer
 sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
 
+LOGGER = logging.getLogger('SERVER')
+LOGGER.setLevel(logging.INFO)
+fh.setLevel(logging.DEBUG)
+ch = logging.StreamHandler()
+ch.setLevel(logging.ERROR)
+formatter = logging.Formatter(
+    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+ch.setFormatter(formatter)
+fh.setFormatter(formatter)
+LOGGER.addHandler(ch)
+LOGGER.addHandler(fh)
+
 
 class RemoteAnalyzeHandler:
     def analyze(self, command, zip_file):
-        print('Starting analyze...')
+        LOGGER.info('Starting analyze...')
 
         random_uuid = str(uuid.uuid4())
 
@@ -32,7 +45,7 @@ class RemoteAnalyzeHandler:
             with open(run_zip_file, 'wb') as zipf:
                 zipf.write(zip_file)
         except IOError:
-            print("Failed to extract received ZIP.")
+            LOGGER.error("Failed to extract received ZIP.")
 
         path = str(random_uuid) + '/'
 
@@ -65,9 +78,9 @@ class RemoteAnalyzeHandler:
         output, err = process.communicate()
         p_status = process.wait()
 
-        print("Command output: \n%s" % output)
-        print("Error output: %s" % err)
-        print("Return code: %s" % p_status)
+        LOGGER.debug("Command output: \n%s" % output)
+        LOGGER.debug("Error output: %s" % err)
+        LOGGER.debug("Return code: %s" % p_status)
 
         output = zipfile.ZipFile(random_uuid + '_output.zip', 'w')
         for root, dirs, files in os.walk(os.path.join(random_uuid, 'output')):
@@ -91,6 +104,6 @@ if __name__ == '__main__':
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
 
-    print('Starting the server...')
+    LOGGER.info('Starting the server...')
     SERVER.serve()
-    print('Server stopped.')
+    LOGGER.info('Server stopped.')
