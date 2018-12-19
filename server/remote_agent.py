@@ -20,7 +20,7 @@ from thrift.server import TServer
 sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
 
-LOGGER = logging.getLogger('SERVER')
+LOGGER = logging.getLogger('CLIENT')
 LOGGER.setLevel(logging.INFO)
 fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
