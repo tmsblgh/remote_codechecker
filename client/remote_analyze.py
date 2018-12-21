@@ -4,8 +4,6 @@
 Client for handling remote analyze requests with CodeChecker.
 """
 
-from __future__ import print_function
-
 import sys
 import argparse
 import subprocess
@@ -58,7 +56,7 @@ def main():
         client = RemoteAnalyze.Client(protocol)
         transport.open()
 
-        command = ["python", "tu_collector.py"]
+        command = ["python2", "tu_collector.py"]
         command.append("-b")
         command.append("%s" % args.command)
         command.append("-z")
@@ -71,9 +69,8 @@ def main():
 
         process.wait()
 
-        source_file = open(source_file, 'rb')
-        file_content = source_file.read()
-        source_file.close()
+        with open(source_file, 'rb') as source_file:
+            file_content = source_file.read()
 
         try:
             response = client.analyze(args.command, file_content)

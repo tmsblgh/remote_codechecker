@@ -4,8 +4,6 @@
 Server for handling remote analyze requests with CodeChecker.
 """
 
-from __future__ import print_function
-
 import os
 import sys
 import uuid
