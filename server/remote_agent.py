@@ -31,66 +31,71 @@ LOGGER.addHandler(ch)
 LOGGER.addHandler(fh)
 
 
+class Analysis(object):
+    def __init__(self, id, state, container_id=None):
+        self.id = id
+        self.state = state
+        self.container_id = container_id
+
+
 class RemoteAnalyzeHandler:
-    def analyze(self, command, zip_file):
-        LOGGER.info('Starting analyze...')
+    def __init__(self):
+        self.log = {}
 
-        random_uuid = str(uuid.uuid4())
+    def getId(self):
+        logger.info('Provide an id for the analysis')
 
-        run_zip_file = random_uuid + '.zip'
+        newAnalysisId = str(uuid.uuid4())
+        newAnalysisState = 'ID PROVIDED'
 
-        try:
-            with open(run_zip_file, 'wb') as zipf:
-                zipf.write(zip_file)
-        except IOError:
-            LOGGER.error("Failed to extract received ZIP.")
+        newAnalysis = Analysis(newAnalysisId, newAnalysisState)
 
-        path = str(random_uuid) + '/'
+        analyses.append(newAnalysis)
 
-        with zipfile.ZipFile(run_zip_file) as zf:
-            zf.extractall(path)
+        os.mkdir(newAnalysisId)
 
-        file_name = command.rsplit(' ', 1)[1]
+        return newAnalysisId
 
-        run_command = command.rsplit(' ', 1)[0]
+    def analyze(self, analysisId, zip_file):
+        logger.info('Store sources for analysis %s' , analysisId)
 
-        for root, directories, files in os.walk(path):
-            for directory in directories:
-                os.chmod(os.path.join(root, directory), 0o744)
-            for file in files:
-                os.chmod(os.path.join(root, file), 0o744)
-                if file == file_name:
-                    file_path = os.path.join(root, file)
+        source_path = os.path.join(analysisId, 'source.zip')
 
-        command = ["CodeChecker", "check"]
-        command.append("-b")
-        command.append("%s %s" % (run_command, file_path))
-        command.append("-o")
-        command.append("%s" % (os.path.join(random_uuid, 'output')))
+        with open(source_path, 'wb') as source:
+            try:
+                source.write(zip_file)
+                # change analysis state to COMPLETED, just for testing
+                for analysis in analyses:
+                    if analysis.id == analysisId:
+                        analysis.state = 'COMPLETED'
+            except Exception:
+                logger.error("Failed to store received ZIP.")
 
-        process = subprocess.Popen(command,
-                                   stdout=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+    def getStatus(self, analysisId):
+        logger.info('Get status of analysis %s', analysisId)
 
-        output, err = process.communicate()
-        p_status = process.wait()
+        dataOfAnalysis = None
 
-        LOGGER.debug("Command output: \n%s" % output)
-        LOGGER.debug("Error output: %s" % err)
-        LOGGER.debug("Return code: %s" % p_status)
+        for analysis in analyses:
+            if analysis.id == analysisId:
+                dataOfAnalysis = analysis
+                break
 
-        output = zipfile.ZipFile(random_uuid + '_output.zip', 'w')
-        for root, dirs, files in os.walk(os.path.join(random_uuid, 'output')):
-            for file in files:
-                output.write(os.path.join(root, file))
-        output.close()
+        if dataOfAnalysis is None:
+            return ('Not found.')
 
-        output_file = open(random_uuid + '_output.zip', 'rb')
-        response = output_file.read()
-        output_file.close()
+        return (dataOfAnalysis.state)
 
-        return response
+    def getResults(self, analysisId):
+        for analysis in analyses:
+            if analysis.id == analysisId:
+                if analysis.state == 'COMPLETED':
+                    result_path = os.path.join(analysis.id, 'result.zip')
+
+                    with open(result_path, 'rb') as result:
+                        response = result.read()
+
+                    return response
 
 
 if __name__ == '__main__':
