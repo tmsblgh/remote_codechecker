@@ -23,22 +23,18 @@ sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
 from remote_analyze_api.ttypes import InvalidOperation
 
-LOGGER = logging.getLogger('CLIENT')
+LOGGER = logging.getLogger('SERVER')
 LOGGER.setLevel(logging.INFO)
-fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
+ch.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
-fh.setFormatter(formatter)
 LOGGER.addHandler(ch)
-LOGGER.addHandler(fh)
 
 
 class Analysis(object):
-    def __init__(self, id, state, container_id=None):
-        self.id = id
+    def __init__(self, state, container_id=None):
         self.state = state
         self.container_id = container_id
 
@@ -48,39 +44,41 @@ class RemoteAnalyzeHandler:
         self.log = {}
 
     def getId(self):
-        logger.info('Provide an id for the analysis')
+        LOGGER.info('Provide an id for the analysis')
 
         newAnalysisId = str(uuid.uuid4())
         newAnalysisState = 'ID PROVIDED'
 
         newAnalysis = Analysis(newAnalysisId, newAnalysisState)
 
-        analyses.append(newAnalysis)
+        analyses[newAnalysisId] = newAnalysis
 
-        os.mkdir(newAnalysisId)
+        os.mkdir(os.path.join(WORKSPACE, newAnalysisId))
 
         return newAnalysisId
 
     def analyze(self, analysisId, zip_file):
-        logger.info('Store sources for analysis %s' , analysisId)
+        LOGGER.info('Store sources for analysis %s' , analysisId)
 
         source_path = os.path.join(analysisId, 'source.zip')
 
-        with open(source_path, 'wb') as source:
+        with open(os.path.join(WORKSPACE, source_path), 'wb') as source:
             try:
                 source.write(zip_file)
                 # change analysis state to COMPLETED, just for testing
-                for analysis in analyses:
-                    if analysis.id == analysisId:
-                        analysis.state = 'COMPLETED'
+                analyses[analysisId].state = 'COMPLETED'
             except Exception:
-                logger.error("Failed to store received ZIP.")
+                LOGGER.error("Failed to store received ZIP.")
 
         client = docker.from_env()
 
-        listOfContainers = client.containers.list(all=True, filters={'ancestor':'remote_codechecker'})
+        listOfContainers = client.containers.list(all=True, filters={'ancestor':'remote_codechecker', 'status':'running'})
 
-        logger.info(listOfContainers)
+        if len(listOfContainers) == 0:
+            LOGGER.error('There is no running CodeChecker container')
+            return None
+
+        LOGGER.info(listOfContainers)
 
         # random select container just for testing
         randomIndex = randint(0, len(listOfContainers) - 1)
@@ -90,33 +88,37 @@ class RemoteAnalyzeHandler:
         chosedContainer.exec_run(['sh', '-c', 'python test.py'])
 
     def getStatus(self, analysisId):
-        logger.info('Get status of analysis %s', analysisId)
+        LOGGER.info('Get status of analysis %s', analysisId)
 
-        dataOfAnalysis = None
-
-        for analysis in analyses:
-            if analysis.id == analysisId:
-                dataOfAnalysis = analysis
-                break
-
-        if dataOfAnalysis is None:
+        if analyses[analysisId] is None:
             return ('Not found.')
 
-        return (dataOfAnalysis.state)
+        return analyses[analysisId].state
 
     def getResults(self, analysisId):
         for analysis in analyses:
-            if analysis.id == analysisId:
-                if analysis.state == 'COMPLETED':
-                    result_path = os.path.join(analysis.id, 'result.zip')
+            if analyses[analysisId].state == 'COMPLETED':
+                result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
 
-                    with open(result_path, 'rb') as result:
-                        response = result.read()
+                with open(result_path, 'rb') as result:
+                    response = result.read()
 
-                    return response
+                return response
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=".....")
+
+    log_args = parser.add_argument_group("log arguments", """.....""")
+    log_args = log_args.add_mutually_exclusive_group(required=True)
+
+    log_args.add_argument('w', '--workspace', type=str,
+                          dest='workspace', help="...")
+
+    args = parser.parse_args()
+
+    WORKSPACE = args.workspace
+
     HANDLER = RemoteAnalyzeHandler()
     PROCESSOR = RemoteAnalyze.Processor(HANDLER)
     TRANSPORT = TSocket.TServerSocket(host='0.0.0.0', port=9090)
@@ -124,6 +126,8 @@ if __name__ == '__main__':
     P_FACTORY = TBinaryProtocol.TBinaryProtocolFactory()
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
+
+    analyses = dict()
 
     LOGGER.info('Starting the server...')
     SERVER.serve()
