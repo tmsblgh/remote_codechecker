@@ -10,6 +10,10 @@ import uuid
 import subprocess
 import logging
 import zipfile
+import docker
+#just for testing
+from random import randint
+
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
@@ -17,6 +21,7 @@ from thrift.server import TServer
 
 sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
+from remote_analyze_api.ttypes import InvalidOperation
 
 LOGGER = logging.getLogger('CLIENT')
 LOGGER.setLevel(logging.INFO)
@@ -70,6 +75,19 @@ class RemoteAnalyzeHandler:
                         analysis.state = 'COMPLETED'
             except Exception:
                 logger.error("Failed to store received ZIP.")
+
+        client = docker.from_env()
+
+        listOfContainers = client.containers.list(all=True, filters={'ancestor':'remote_codechecker'})
+
+        logger.info(listOfContainers)
+
+        # random select container just for testing
+        randomIndex = randint(0, len(listOfContainers) - 1)
+        chosedContainer = listOfContainers[randomIndex]
+
+        # send the id to the container to trigger analyze
+        chosedContainer.exec_run(['sh', '-c', 'python test.py'])
 
     def getStatus(self, analysisId):
         logger.info('Get status of analysis %s', analysisId)
