@@ -10,6 +10,10 @@ translation unit. This script does this action based on a compilation database
 JSON file. The output of the script is a ZIP package with the collected
 sources.
 """
+from __future__ import print_function
+from __future__ import division
+from __future__ import absolute_import
+
 import argparse
 import codecs
 import fnmatch
