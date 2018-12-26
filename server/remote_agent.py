@@ -15,6 +15,7 @@ import argparse
 import docker
 import argparse
 import redis
+
 from enum import Enum
 from random import randint
 
