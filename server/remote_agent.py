@@ -112,7 +112,7 @@ if __name__ == '__main__':
     log_args = parser.add_argument_group("log arguments", """.....""")
     log_args = log_args.add_mutually_exclusive_group(required=True)
 
-    log_args.add_argument('w', '--workspace', type=str,
+    log_args.add_argument('-w', '--workspace', type=str,
                           dest='workspace', help="...")
 
     args = parser.parse_args()
