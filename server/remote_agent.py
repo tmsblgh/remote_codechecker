@@ -11,6 +11,8 @@ import subprocess
 import logging
 import zipfile
 import docker
+import argparse
+import redis
 #just for testing
 from random import randint
 
@@ -33,12 +35,6 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 
-class Analysis(object):
-    def __init__(self, state, container_id=None):
-        self.state = state
-        self.container_id = container_id
-
-
 class RemoteAnalyzeHandler:
     def __init__(self):
         self.log = {}
@@ -47,11 +43,8 @@ class RemoteAnalyzeHandler:
         LOGGER.info('Provide an id for the analysis')
 
         newAnalysisId = str(uuid.uuid4())
-        newAnalysisState = 'ID PROVIDED'
 
-        newAnalysis = Analysis(newAnalysisId, newAnalysisState)
-
-        analyses[newAnalysisId] = newAnalysis
+        REDIS_DATABASE.hset(newAnalysisId, 'state', 'ID PROVIDED')
 
         os.mkdir(os.path.join(WORKSPACE, newAnalysisId))
 
@@ -66,7 +59,7 @@ class RemoteAnalyzeHandler:
             try:
                 source.write(zip_file)
                 # change analysis state to COMPLETED, just for testing
-                analyses[analysisId].state = 'COMPLETED'
+                REDIS_DATABASE.hset(analysisId, 'state', 'COMPLETED')
             except Exception:
                 LOGGER.error("Failed to store received ZIP.")
 
@@ -84,26 +77,33 @@ class RemoteAnalyzeHandler:
         randomIndex = randint(0, len(listOfContainers) - 1)
         chosedContainer = listOfContainers[randomIndex]
 
+        REDIS_DATABASE.hset(analysisId, 'container', chosedContainer.id)
+
+        LOGGER.info('Data stored in Redis for analysis %s: %s' % (analysisId, str(REDIS_DATABASE.hgetall(analysisId))))
+
         # send the id to the container to trigger analyze
         chosedContainer.exec_run(['sh', '-c', 'python test.py'])
 
     def getStatus(self, analysisId):
         LOGGER.info('Get status of analysis %s', analysisId)
 
-        if analyses[analysisId] is None:
+        analysisState = REDIS_DATABASE.hget(analysisId, 'state')
+
+        if analysisState is None:
             return ('Not found.')
 
-        return analyses[analysisId].state
+        return analysisState
 
     def getResults(self, analysisId):
-        for analysis in analyses:
-            if analyses[analysisId].state == 'COMPLETED':
-                result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
+        analysisState = REDIS_DATABASE.hget(analysisId, 'state')
 
-                with open(result_path, 'rb') as result:
-                    response = result.read()
+        if analysisState == 'COMPLETED':
+            result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
 
-                return response
+            with open(result_path, 'rb') as result:
+                response = result.read()
+
+            return response
 
 
 if __name__ == '__main__':
@@ -127,7 +127,7 @@ if __name__ == '__main__':
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
 
-    analyses = dict()
+    REDIS_DATABASE = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
 
     LOGGER.info('Starting the server...')
     SERVER.serve()

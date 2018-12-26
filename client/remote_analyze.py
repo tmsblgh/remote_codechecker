@@ -68,7 +68,7 @@ def analyze(args):
         transport.close()
 
     except Thrift.TException as thrift_exception:
-        LOGGER.error('%s' % (tx.message))
+        LOGGER.error('%s' % (thrift_exception.message))
 
 def get_status(args):
     try:
