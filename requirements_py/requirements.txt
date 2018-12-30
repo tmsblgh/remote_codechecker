@@ -1,2 +1,3 @@
 thrift==0.11.0
 docker==3.6.0
+redis==3.0.1

@@ -13,7 +13,7 @@ import zipfile
 import docker
 import argparse
 import redis
-#just for testing
+from enum import Enum
 from random import randint
 
 from thrift.transport import TSocket
@@ -35,6 +35,12 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 
+class AnalyzeStatus(Enum):
+    ID_PROVIDED = 'ID_PROVIDED'
+    IN_PROGRESS = 'IN_PROGRESS'
+    COMPLETED = 'COMPLETED'
+
+
 class RemoteAnalyzeHandler:
     def __init__(self):
         self.log = {}
@@ -44,7 +50,7 @@ class RemoteAnalyzeHandler:
 
         newAnalysisId = str(uuid.uuid4())
 
-        REDIS_DATABASE.hset(newAnalysisId, 'state', 'ID PROVIDED')
+        REDIS_DATABASE.hset(newAnalysisId, 'state', AnalyzeStatus.ID_PROVIDED.name)
 
         os.mkdir(os.path.join(WORKSPACE, newAnalysisId))
 
@@ -59,7 +65,7 @@ class RemoteAnalyzeHandler:
             try:
                 source.write(zip_file)
                 # change analysis state to COMPLETED, just for testing
-                REDIS_DATABASE.hset(analysisId, 'state', 'COMPLETED')
+                REDIS_DATABASE.hset(analysisId, 'state', AnalyzeStatus.COMPLETED.name)
             except Exception:
                 LOGGER.error("Failed to store received ZIP.")
 
@@ -82,7 +88,7 @@ class RemoteAnalyzeHandler:
         LOGGER.info('Data stored in Redis for analysis %s: %s' % (analysisId, str(REDIS_DATABASE.hgetall(analysisId))))
 
         # send the id to the container to trigger analyze
-        chosedContainer.exec_run(['sh', '-c', 'python test.py'])
+        chosedContainer.exec_run(['sh', '-c', 'touch apple.txt'])
 
     def getStatus(self, analysisId):
         LOGGER.info('Get status of analysis %s', analysisId)
@@ -97,7 +103,7 @@ class RemoteAnalyzeHandler:
     def getResults(self, analysisId):
         analysisState = REDIS_DATABASE.hget(analysisId, 'state')
 
-        if analysisState == 'COMPLETED':
+        if analysisState == AnalyzeStatus.COMPLETED.name:
             result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
 
             with open(result_path, 'rb') as result:
@@ -109,10 +115,7 @@ class RemoteAnalyzeHandler:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=".....")
 
-    log_args = parser.add_argument_group("log arguments", """.....""")
-    log_args = log_args.add_mutually_exclusive_group(required=True)
-
-    log_args.add_argument('-w', '--workspace', type=str,
+    parser.add_argument('-w', '--workspace', type=str,
                           dest='workspace', help="...")
 
     args = parser.parse_args()
