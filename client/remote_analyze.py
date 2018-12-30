@@ -9,6 +9,8 @@ import logging
 import zlib
 import tempfile
 
+from contextlib import AbstractContextManager
+
 from remote_analyze_api import RemoteAnalyze
 from remote_analyze_api.ttypes import InvalidOperation
 
@@ -27,20 +29,34 @@ ch.setFormatter(formatter)
 LOGGER.addHandler(ch)
 
 
+class RemoteAnalayzerClient(AbstractContextManager):
+    def __init__(self, host, port):
+        self.transport = TSocket.TSocket(host, port)
+        self.transport = TTransport.TBufferedTransport(self.transport)
+        self.protocol = TBinaryProtocol.TBinaryProtocol(self.transport)
+
+    def __enter__(self):
+        client = RemoteAnalyze.Client(self.protocol)
+        self.transport.open()
+        return client
+
+    def __exit__(self, *exc_details):
+        self.transport.close()
+
+
 def analyze(args):
+    """
+    This method tries to collect files based on the build command for the
+    remote analysis with tu_collector script to a zip file.
+
+    If it was success it calls server's getId method to get an UUID for the
+    analysis.
+
+    Then the script saves the zip file to the workspace/{received-uuid}
+    directory .
+    """
+
     try:
-        transport = TSocket.TSocket('localhost', 9090)
-        transport = TTransport.TBufferedTransport(transport)
-        protocol = TBinaryProtocol.TBinaryProtocol(transport)
-        client = RemoteAnalyze.Client(protocol)
-        transport.open()
-
-        try:
-            analyzeId = client.getId()
-            LOGGER.info('Received id %s', analyzeId)
-        except InvalidOperation as e:
-            print('InvalidOperation: %r' % e)
-
         with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
             command = ["python2", "tu_collector.py"]
             command.append("-b")
@@ -52,65 +68,67 @@ def analyze(args):
                                    stdin=subprocess.PIPE,
                                    stdout=subprocess.PIPE,
                                    stderr=subprocess.PIPE)
-            
+
         process.wait()
 
-        with open(zip_file.name, 'rb') as source_file:
-            file_content = source_file.read()
+        LOGGER.debug('Zip file name %s' % zip_file.name)
 
-        try:
-            response = client.analyze(analyzeId, file_content)
-            LOGGER.info('Stored sources for id %s', analyzeId)
-        except InvalidOperation as e:
-            LOGGER.error('InvalidOperation: %r' % e)
+        with RemoteAnalayzerClient(args.host, args.port) as client:
+            try:
+                analyzeId = client.getId()
+                LOGGER.info('Received id %s', analyzeId)
+            except InvalidOperation as e:
+                logger.error('InvalidOperation: %r' % e)
 
-        # Close!
-        transport.close()
+            with open(zip_file.name, 'rb') as source_file:
+                file_content = source_file.read()
+
+            try:
+                response = client.analyze(analyzeId, file_content)
+                LOGGER.info('Stored sources for id %s', analyzeId)
+            except InvalidOperation as e:
+                LOGGER.error('InvalidOperation: %r' % e)
 
     except Thrift.TException as thrift_exception:
         LOGGER.error('%s' % (tx.message))
 
+
 def get_status(args):
+    """
+    This method tries to get the status of the analysis from the server.
+    """
+
     try:
-        transport = TSocket.TSocket('localhost', 9090)
-        transport = TTransport.TBufferedTransport(transport)
-        protocol = TBinaryProtocol.TBinaryProtocol(transport)
-        client = RemoteAnalyze.Client(protocol)
-        transport.open()
-
-        try:
-            response = client.getStatus(args.id)
-            LOGGER.info('Status of analysis: %s', response)
-        except InvalidOperation as e:
-            LOGGER.error('InvalidOperation: %r' % e)
-
-        # Close!
-        transport.close()
+        with RemoteAnalayzerClient(args.host, args.port) as client:
+            try:
+                response = client.getStatus(args.id)
+                LOGGER.info('Status of analysis: %s', response)
+            except InvalidOperation as e:
+                LOGGER.error('InvalidOperation: %r' % e)
 
     except Thrift.TException as thrift_exception:
         LOGGER.error('%s' % (thrift_exception.message))
 
+
 def get_results(args):
+    """
+    This method tries to get the results of the analysis from the server.
+    """
+
     try:
-        transport = TSocket.TSocket('localhost', 9090)
-        transport = TTransport.TBufferedTransport(transport)
-        protocol = TBinaryProtocol.TBinaryProtocol(transport)
-        client = RemoteAnalyze.Client(protocol)
-        transport.open()
+        with RemoteAnalayzerClient(args.host, args.port) as client:
+            try:
+                response = client.getResults(args.id)
+                with open(args.id + '.zip', 'wb') as source:
+                    try:
+                        source.write(response)
+                        LOGGER.info(
+                            'Stored the results of analysis %s', args.id)
+                    except Exception:
+                        LOGGER.error("Failed to store received ZIP.")
 
-        try:
-            response = client.getResults(args.id)
-            with open(args.id + '.zip', 'wb') as source:
-                try:
-                    source.write(response)
-                    LOGGER.info('Stored the results of analysis %s', args.id)
-                except Exception:
-                    LOGGER.error("Failed to store received ZIP.")
-                    
-        except InvalidOperation as e:
-            LOGGER.error('InvalidOperation: %r' % e)
-
-        transport.close()
+            except InvalidOperation as e:
+                LOGGER.error('InvalidOperation: %r' % e)
 
     except Thrift.TException as thrift_exception:
         LOGGER.error('%s' % (thrift_exception.message))
@@ -119,21 +137,27 @@ def get_results(args):
 def main():
     parser = argparse.ArgumentParser(description=".....")
 
+    parser.add_argument('--host', type=str,
+                        dest='host', default='localhost', help="...")
+
+    parser.add_argument('--port', type=str,
+                        dest='port', default='9090', help="...")
+
     subparsers = parser.add_subparsers(help='sub-command help')
 
     parser_analyze = subparsers.add_parser('analyze', help='analyze help')
     parser_analyze.add_argument('-b', '--build', type=str,
-                          dest='build_command', required=True, help="...")
+                                dest='build_command', required=True, help="...")
     parser_analyze.set_defaults(func=analyze)
 
     parser_status = subparsers.add_parser('status', help='status help')
     parser_status.add_argument('-id', '--id', type=str,
-                          dest='id', required=True, help="...")
+                               dest='id', required=True, help="...")
     parser_status.set_defaults(func=get_status)
 
     parser_results = subparsers.add_parser('results', help='results help')
     parser_results.add_argument('-id', '--id', type=str,
-                          dest='id', required=True, help="...")
+                                dest='id', required=True, help="...")
     parser_results.set_defaults(func=get_results)
 
     args = parser.parse_args()

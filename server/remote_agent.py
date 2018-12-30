@@ -7,12 +7,13 @@ Server for handling remote analyze requests with CodeChecker.
 import os
 import sys
 import uuid
+import argparse
 import subprocess
 import logging
 import zipfile
 import argparse
 import docker
-#just for testing
+# just for testing
 from random import randint
 
 from thrift.transport import TSocket
@@ -59,7 +60,7 @@ class RemoteAnalyzeHandler:
         return newAnalysisId
 
     def analyze(self, analysisId, zip_file):
-        LOGGER.info('Store sources for analysis %s' , analysisId)
+        LOGGER.info('Store sources for analysis %s', analysisId)
 
         source_path = os.path.join(analysisId, 'source.zip')
 
@@ -73,7 +74,8 @@ class RemoteAnalyzeHandler:
 
         client = docker.from_env()
 
-        listOfContainers = client.containers.list(all=True, filters={'ancestor':'remote_codechecker', 'status':'running'})
+        listOfContainers = client.containers.list(
+            all=True, filters={'ancestor': 'remote_codechecker', 'status': 'running'})
 
         if len(listOfContainers) == 0:
             LOGGER.error('There is no running CodeChecker container')
