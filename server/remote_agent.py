@@ -13,7 +13,6 @@ import logging
 import zipfile
 import argparse
 import docker
-import argparse
 import redis
 
 from enum import Enum
