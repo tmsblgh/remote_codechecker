@@ -7,9 +7,15 @@ Server for handling remote analyze requests with CodeChecker.
 import os
 import sys
 import uuid
+import argparse
 import subprocess
 import logging
 import zipfile
+import argparse
+import docker
+# just for testing
+from random import randint
+
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
@@ -17,83 +23,105 @@ from thrift.server import TServer
 
 sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
+from remote_analyze_api.ttypes import InvalidOperation
 
-LOGGER = logging.getLogger('CLIENT')
+LOGGER = logging.getLogger('SERVER')
 LOGGER.setLevel(logging.INFO)
-fh.setLevel(logging.DEBUG)
 ch = logging.StreamHandler()
-ch.setLevel(logging.ERROR)
+ch.setLevel(logging.INFO)
 formatter = logging.Formatter(
     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
-fh.setFormatter(formatter)
 LOGGER.addHandler(ch)
-LOGGER.addHandler(fh)
+
+
+class Analysis(object):
+    def __init__(self, state, container_id=None):
+        self.state = state
+        self.container_id = container_id
 
 
 class RemoteAnalyzeHandler:
-    def analyze(self, command, zip_file):
-        LOGGER.info('Starting analyze...')
+    def __init__(self):
+        self.log = {}
 
-        random_uuid = str(uuid.uuid4())
+    def getId(self):
+        LOGGER.info('Provide an id for the analysis')
 
-        run_zip_file = random_uuid + '.zip'
+        newAnalysisId = str(uuid.uuid4())
+        newAnalysisState = 'ID PROVIDED'
 
-        try:
-            with open(run_zip_file, 'wb') as zipf:
-                zipf.write(zip_file)
-        except IOError:
-            LOGGER.error("Failed to extract received ZIP.")
+        newAnalysis = Analysis(newAnalysisId, newAnalysisState)
 
-        path = str(random_uuid) + '/'
+        analyses[newAnalysisId] = newAnalysis
 
-        with zipfile.ZipFile(run_zip_file) as zf:
-            zf.extractall(path)
+        os.mkdir(os.path.join(WORKSPACE, newAnalysisId))
 
-        file_name = command.rsplit(' ', 1)[1]
+        return newAnalysisId
 
-        run_command = command.rsplit(' ', 1)[0]
+    def analyze(self, analysisId, zip_file):
+        LOGGER.info('Store sources for analysis %s', analysisId)
 
-        for root, directories, files in os.walk(path):
-            for directory in directories:
-                os.chmod(os.path.join(root, directory), 0o744)
-            for file in files:
-                os.chmod(os.path.join(root, file), 0o744)
-                if file == file_name:
-                    file_path = os.path.join(root, file)
+        source_path = os.path.join(analysisId, 'source.zip')
 
-        command = ["CodeChecker", "check"]
-        command.append("-b")
-        command.append("%s %s" % (run_command, file_path))
-        command.append("-o")
-        command.append("%s" % (os.path.join(random_uuid, 'output')))
+        with open(os.path.join(WORKSPACE, source_path), 'wb') as source:
+            try:
+                source.write(zip_file)
+                # change analysis state to COMPLETED, just for testing
+                analyses[analysisId].state = 'COMPLETED'
+            except Exception:
+                LOGGER.error("Failed to store received ZIP.")
 
-        process = subprocess.Popen(command,
-                                   stdout=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        client = docker.from_env()
 
-        output, err = process.communicate()
-        p_status = process.wait()
+        listOfContainers = client.containers.list(
+            all=True, filters={'ancestor': 'remote_codechecker', 'status': 'running'})
 
-        LOGGER.debug("Command output: \n%s" % output)
-        LOGGER.debug("Error output: %s" % err)
-        LOGGER.debug("Return code: %s" % p_status)
+        if len(listOfContainers) == 0:
+            LOGGER.error('There is no running CodeChecker container')
+            return None
 
-        output = zipfile.ZipFile(random_uuid + '_output.zip', 'w')
-        for root, dirs, files in os.walk(os.path.join(random_uuid, 'output')):
-            for file in files:
-                output.write(os.path.join(root, file))
-        output.close()
+        LOGGER.info(listOfContainers)
 
-        output_file = open(random_uuid + '_output.zip', 'rb')
-        response = output_file.read()
-        output_file.close()
+        # random select container just for testing
+        randomIndex = randint(0, len(listOfContainers) - 1)
+        chosedContainer = listOfContainers[randomIndex]
 
-        return response
+        # send the id to the container to trigger analyze
+        chosedContainer.exec_run(['sh', '-c', 'python test.py'])
+
+    def getStatus(self, analysisId):
+        LOGGER.info('Get status of analysis %s', analysisId)
+
+        if analyses[analysisId] is None:
+            return ('Not found.')
+
+        return analyses[analysisId].state
+
+    def getResults(self, analysisId):
+        for analysis in analyses:
+            if analyses[analysisId].state == 'COMPLETED':
+                result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
+
+                with open(result_path, 'rb') as result:
+                    response = result.read()
+
+                return response
 
 
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(description=".....")
+
+    log_args = parser.add_argument_group("log arguments", """.....""")
+    log_args = log_args.add_mutually_exclusive_group(required=True)
+
+    log_args.add_argument('-w', '--workspace', type=str,
+                          dest='workspace', help="...")
+
+    args = parser.parse_args()
+
+    WORKSPACE = args.workspace
+
     HANDLER = RemoteAnalyzeHandler()
     PROCESSOR = RemoteAnalyze.Processor(HANDLER)
     TRANSPORT = TSocket.TServerSocket(host='0.0.0.0', port=9090)
@@ -101,6 +129,8 @@ if __name__ == '__main__':
     P_FACTORY = TBinaryProtocol.TBinaryProtocolFactory()
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
+
+    analyses = dict()
 
     LOGGER.info('Starting the server...')
     SERVER.serve()
