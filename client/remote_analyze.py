@@ -90,7 +90,7 @@ def analyze(args):
                 LOGGER.error('InvalidOperation: %r' % e)
 
     except Thrift.TException as thrift_exception:
-        LOGGER.error('%s' % (tx.message))
+        LOGGER.error('%s' % (thrift_exception.message))
 
 
 def get_status(args):
