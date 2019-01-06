@@ -50,13 +50,15 @@ class RemoteAnalyzeHandler:
     def getId(self):
         LOGGER.info('Provide an id for the analysis')
 
-        newAnalysisId = str(uuid.uuid4())
+        new_analyze_id = str(uuid.uuid4())
 
-        REDIS_DATABASE.hset(newAnalysisId, 'state', AnalyzeStatus.ID_PROVIDED.name)
+        REDIS_DATABASE.hset(new_analyze_id, 'state', AnalyzeStatus.ID_PROVIDED.name)
 
-        os.mkdir(os.path.join(WORKSPACE, newAnalysisId))
+        new_analyze_dir = os.path.abspath(os.path.join(WORKSPACE, new_analyze_id))
+        if not os.path.exists(new_analyze_dir):
+            os.makedirs(new_analyze_dir)
 
-        return newAnalysisId
+        return new_analyze_id
 
     def analyze(self, analysisId, zip_file):
         LOGGER.info('Store sources for analysis %s', analysisId)
@@ -118,8 +120,8 @@ class RemoteAnalyzeHandler:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description=".....")
 
-    parser.add_argument('-w', '--workspace', type=str,
-                          dest='workspace', help="...")
+    parser.add_argument('-w', '--workspace', type=str, dest='workspace',
+                        default='workspace', help="...")
 
     args = parser.parse_args()
 
@@ -133,7 +135,7 @@ if __name__ == '__main__':
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
 
-    REDIS_DATABASE = redis.Redis(host='localhost', port=6379, db=0, charset="utf-8", decode_responses=True)
+    REDIS_DATABASE = redis.Redis(host='redis', port=6379, db=0, charset="utf-8", decode_responses=True)
 
     LOGGER.info('Starting the server...')
     SERVER.serve()

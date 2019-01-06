@@ -1,0 +1,22 @@
+version: '3.6'  
+services:  
+  controller:
+    image: remote_agent
+    build:
+      context: .
+    volumes:
+      - /private/tmp/workspace:/workspace
+      - /var/run/docker.sock:/var/run/docker.sock
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+    ports:
+      - "9090:9090"
+  redis:
+    image: redis:3.0.1
+    volumes:
+      - redis_data:/data
+volumes:
+  controller_data:
+  redis_data:
