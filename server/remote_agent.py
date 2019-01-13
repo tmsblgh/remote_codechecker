@@ -60,23 +60,23 @@ class RemoteAnalyzeHandler:
 
         return new_analyze_id
 
-    def analyze(self, analysisId, zip_file):
-        LOGGER.info('Store sources for analysis %s', analysisId)
+    def analyze(self, analyze_id, zip_file):
+        LOGGER.info('Store sources for analysis %s', analyze_id)
 
-        source_path = os.path.join(analysisId, 'source.zip')
+        source_path = os.path.join(analyze_id, 'source.zip')
 
         with open(os.path.join(WORKSPACE, source_path), 'wb') as source:
             try:
                 source.write(zip_file)
                 # change analysis state to COMPLETED, just for testing
-                REDIS_DATABASE.hset(analysisId, 'state', AnalyzeStatus.COMPLETED.name)
+                REDIS_DATABASE.hset(analyze_id, 'state', AnalyzeStatus.COMPLETED.name)
             except Exception:
                 LOGGER.error("Failed to store received ZIP.")
 
         client = docker.from_env()
 
         listOfContainers = client.containers.list(
-            all=True, filters={'ancestor': 'remote_codechecker', 'status': 'running'})
+            all=True, filters={'ancestor': 'codechecker', 'status': 'running'})
 
         if len(listOfContainers) == 0:
             LOGGER.error('There is no running CodeChecker container')
@@ -85,31 +85,31 @@ class RemoteAnalyzeHandler:
         LOGGER.info(listOfContainers)
 
         # random select container just for testing
-        randomIndex = randint(0, len(listOfContainers) - 1)
-        chosedContainer = listOfContainers[randomIndex]
+        random_index = randint(0, len(listOfContainers) - 1)
+        chosed_container = listOfContainers[random_index]
 
-        REDIS_DATABASE.hset(analysisId, 'container', chosedContainer.id)
+        REDIS_DATABASE.hset(analyze_id, 'container', chosed_container.id)
 
-        LOGGER.info('Data stored in Redis for analysis %s: %s' % (analysisId, str(REDIS_DATABASE.hgetall(analysisId))))
+        LOGGER.info('Data stored in Redis for analysis %s: %s' % (analyze_id, str(REDIS_DATABASE.hgetall(analyze_id))))
 
         # send the id to the container to trigger analyze
-        chosedContainer.exec_run(['sh', '-c', 'touch apple.txt'])
+        chosed_container.exec_run(['sh', '-c', 'python remote/analyze_handler.py', analyze_id])
 
-    def getStatus(self, analysisId):
-        LOGGER.info('Get status of analysis %s', analysisId)
+    def getStatus(self, analyze_id):
+        LOGGER.info('Get status of analysis %s', analyze_id)
 
-        analysisState = REDIS_DATABASE.hget(analysisId, 'state')
+        analysis_state = REDIS_DATABASE.hget(analyze_id, 'state')
 
-        if analysisState is None:
+        if analysis_state is None:
             return ('Not found.')
 
-        return analysisState
+        return analysis_state
 
-    def getResults(self, analysisId):
-        analysisState = REDIS_DATABASE.hget(analysisId, 'state')
+    def getResults(self, analyze_id):
+        analysis_state = REDIS_DATABASE.hget(analyze_id, 'state')
 
-        if analysisState == AnalyzeStatus.COMPLETED.name:
-            result_path = os.path.join(WORKSPACE, analysisId, 'result.zip')
+        if analysis_state == AnalyzeStatus.COMPLETED.name:
+            result_path = os.path.join(WORKSPACE, analyze_id, 'result.zip')
 
             with open(result_path, 'rb') as result:
                 response = result.read()
