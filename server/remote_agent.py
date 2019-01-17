@@ -63,9 +63,23 @@ class RemoteAnalyzeHandler:
     def analyze(self, analyze_id, zip_file):
         LOGGER.info('Store sources for analysis %s', analyze_id)
 
-        source_path = os.path.join(analyze_id, 'source.zip')
+        file_name = 'source'
+        file_extension = '.zip'
 
-        with open(os.path.join(WORKSPACE, source_path), 'wb') as source:
+        file_path = os.path.join(WORKSPACE, analyze_id, file_name + file_extension)
+
+        if os.path.isfile(file_path):
+            expand = 1
+            while True:
+                expand += 1
+                new_file_path = file_path.split(file_extension)[0] + '_' + str(expand) + file_extension
+                if os.path.isfile(new_file_path):
+                    continue
+                else:
+                    file_path = new_file_path
+                    break
+
+        with open(file_path, 'wb') as source:
             try:
                 source.write(zip_file)
                 # change analysis state to COMPLETED, just for testing
