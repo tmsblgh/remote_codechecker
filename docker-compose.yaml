@@ -21,6 +21,10 @@ services:
     image: codechecker
     volumes:
       - /private/tmp/workspace:/workspace
+  redis_gui:
+    image: marian/rebrow
+    ports:
+      - "5001:5001"
 volumes:
   controller_data:
   redis_data:

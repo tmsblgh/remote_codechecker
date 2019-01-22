@@ -56,6 +56,8 @@ class RemoteAnalyzeHandler:
         REDIS_DATABASE.hset(new_analyze_id, 'state',
                             AnalyzeStatus.ID_PROVIDED.name)
 
+        REDIS_DATABASE.hset(new_analyze_id, 'completed_parts', 0)
+
         new_analyze_dir = os.path.abspath(
             os.path.join(WORKSPACE, new_analyze_id))
         if not os.path.exists(new_analyze_dir):
@@ -64,7 +66,7 @@ class RemoteAnalyzeHandler:
         return new_analyze_id
 
     def analyze(self, analyze_id, zip_file):
-        LOGGER.info('Store sources for analysis %s', analyze_id)
+        LOGGER.info('Store new part sources for analysis %s', analyze_id)
 
         file_name = 'source'
         part_number = 1
@@ -92,7 +94,7 @@ class RemoteAnalyzeHandler:
 
         REDIS_DATABASE.hset(analyze_id, 'state',
                             AnalyzeStatus.QUEUED.name)
-        REDIS_DATABASE.hset(analyze_id, 'parts', part_number)
+        REDIS_DATABASE.hincrby(analyze_id, 'parts', 1)
         REDIS_DATABASE.rpush(
             'ANALYSES_QUEUE', analyze_id + "-" + str(part_number))
         LOGGER.info('Part %s is %s for analyze %s.',
@@ -112,7 +114,7 @@ class RemoteAnalyzeHandler:
         analysis_state = REDIS_DATABASE.hget(analyze_id, 'state')
 
         if analysis_state == AnalyzeStatus.ANALYZE_COMPLETED.name:
-            result_path = os.path.join(WORKSPACE, analyze_id, 'result.zip')
+            result_path = os.path.join(WORKSPACE, analyze_id, 'output.zip')
 
             with open(result_path, 'rb') as result:
                 response = result.read()
@@ -140,9 +142,6 @@ if __name__ == '__main__':
 
     REDIS_DATABASE = redis.Redis(
         host='redis', port=6379, db=0, charset="utf-8", decode_responses=True)
-
-    # testing
-    REDIS_DATABASE.flushdb()
 
     LOGGER.info('Starting the server...')
     SERVER.serve()

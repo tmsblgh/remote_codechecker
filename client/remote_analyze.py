@@ -64,7 +64,19 @@ def analyze(args):
         tempfile_names = []
 
         if args.build_command:
-            build_commands.append(args.build_command)
+            command = args.build_command
+            for part in command.split(' '):
+                if part.endswith('.cpp'):
+                    file_path = part
+                    break
+
+            absolute_file_path = os.path.abspath(file_path)
+
+            modified_command = command.replace(file_path, absolute_file_path)
+
+            file_path = absolute_file_path
+
+            build_commands[file_path] = modified_command
         else:
             with open(args.compilation_database) as json_file:
                 compilation_database = json.load(json_file)
