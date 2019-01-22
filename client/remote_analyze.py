@@ -10,6 +10,7 @@ import logging
 import zlib
 import tempfile
 import json
+import zipfile
 
 from contextlib import AbstractContextManager
 
@@ -59,7 +60,7 @@ def analyze(args):
     """
 
     try:
-        build_commands = []
+        build_commands = {}
         tempfile_names = []
 
         if args.build_command:
@@ -68,24 +69,36 @@ def analyze(args):
             with open(args.compilation_database) as json_file:
                 compilation_database = json.load(json_file)
                 for item in compilation_database:
-                    build_commands.append(item['command'])
+                    command = item['command']
+                    directory = item['directory']
+                    file_name = item['file']
+
+                    file_path = directory + file_name
+
+                    modified_command = command.replace(file_name, file_path)
+                    build_commands[file_path] = modified_command
 
         LOGGER.debug('%s', build_commands)
 
-        for build_command in build_commands:
+        for file_path in build_commands:
             with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
                 command = ["python2", "tu_collector.py"]
                 command.append("-b")
-                command.append("%s" % build_command)
+                command.append("%s" % build_commands[file_path])
                 command.append("-z")
                 command.append("%s" % zip_file.name)
 
             process = subprocess.Popen(command,
-                                    stdin=subprocess.PIPE,
-                                    stdout=subprocess.PIPE,
-                                    stderr=subprocess.PIPE)
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
 
             process.wait()
+
+            with zipfile.ZipFile(zip_file.name, 'a') as zipf:
+                zipf.writestr('sources-root/build_command',
+                              build_commands[file_path])
+                zipf.writestr('sources-root/file_path', file_path)
 
             tempfile_names.append(zip_file.name)
 
@@ -166,9 +179,9 @@ def main():
     parser_analyze = subparsers.add_parser('analyze', help='analyze help')
     group = parser_analyze.add_mutually_exclusive_group()
     group.add_argument('-b', '--build', type=str,
-                                dest='build_command', help="...")
+                       dest='build_command', help="...")
     group.add_argument('-cdb', '--compilation_database', type=str,
-                                dest='compilation_database', help="...")
+                       dest='compilation_database', help="...")
     group.set_defaults(func=analyze)
 
     parser_status = subparsers.add_parser('status', help='status help')

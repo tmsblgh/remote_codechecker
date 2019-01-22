@@ -17,6 +17,10 @@ services:
     image: redis:3.0.1
     volumes:
       - redis_data:/data
+  analyzer:
+    image: codechecker
+    volumes:
+      - /private/tmp/workspace:/workspace
 volumes:
   controller_data:
   redis_data:

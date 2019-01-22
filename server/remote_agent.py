@@ -12,7 +12,6 @@ import subprocess
 import logging
 import zipfile
 import argparse
-import docker
 import redis
 
 from enum import Enum
@@ -39,8 +38,9 @@ LOGGER.addHandler(ch)
 
 class AnalyzeStatus(Enum):
     ID_PROVIDED = 'ID_PROVIDED'
-    IN_PROGRESS = 'IN_PROGRESS'
-    COMPLETED = 'COMPLETED'
+    QUEUED = 'QUEUED'
+    ANALYZE_IN_PROGRESS = 'ANALYZE_IN_PROGRESS'
+    ANALYZE_COMPLETED = 'ANALYZE_COMPLETED'
 
 
 class RemoteAnalyzeHandler:
@@ -50,11 +50,14 @@ class RemoteAnalyzeHandler:
     def getId(self):
         LOGGER.info('Provide an id for the analysis')
 
-        new_analyze_id = str(uuid.uuid4())
+        # 8 chars should be unique enough
+        new_analyze_id = str(uuid.uuid4())[:8]
 
-        REDIS_DATABASE.hset(new_analyze_id, 'state', AnalyzeStatus.ID_PROVIDED.name)
+        REDIS_DATABASE.hset(new_analyze_id, 'state',
+                            AnalyzeStatus.ID_PROVIDED.name)
 
-        new_analyze_dir = os.path.abspath(os.path.join(WORKSPACE, new_analyze_id))
+        new_analyze_dir = os.path.abspath(
+            os.path.join(WORKSPACE, new_analyze_id))
         if not os.path.exists(new_analyze_dir):
             os.makedirs(new_analyze_dir)
 
@@ -64,15 +67,17 @@ class RemoteAnalyzeHandler:
         LOGGER.info('Store sources for analysis %s', analyze_id)
 
         file_name = 'source'
+        part_number = 1
         file_extension = '.zip'
 
-        file_path = os.path.join(WORKSPACE, analyze_id, file_name + file_extension)
+        file_path = os.path.join(
+            WORKSPACE, analyze_id, file_name + '_' + str(part_number) + file_extension)
 
         if os.path.isfile(file_path):
-            expand = 1
             while True:
-                expand += 1
-                new_file_path = file_path.split(file_extension)[0] + '_' + str(expand) + file_extension
+                part_number += 1
+                new_file_path = os.path.join(
+                    WORKSPACE, analyze_id, file_name + '_' + str(part_number) + file_extension)
                 if os.path.isfile(new_file_path):
                     continue
                 else:
@@ -82,32 +87,16 @@ class RemoteAnalyzeHandler:
         with open(file_path, 'wb') as source:
             try:
                 source.write(zip_file)
-                # change analysis state to COMPLETED, just for testing
-                REDIS_DATABASE.hset(analyze_id, 'state', AnalyzeStatus.COMPLETED.name)
             except Exception:
                 LOGGER.error("Failed to store received ZIP.")
 
-        client = docker.from_env()
-
-        listOfContainers = client.containers.list(
-            all=True, filters={'ancestor': 'codechecker', 'status': 'running'})
-
-        if len(listOfContainers) == 0:
-            LOGGER.error('There is no running CodeChecker container')
-            return None
-
-        LOGGER.info(listOfContainers)
-
-        # random select container just for testing
-        random_index = randint(0, len(listOfContainers) - 1)
-        chosed_container = listOfContainers[random_index]
-
-        REDIS_DATABASE.hset(analyze_id, 'container', chosed_container.id)
-
-        LOGGER.info('Data stored in Redis for analysis %s: %s' % (analyze_id, str(REDIS_DATABASE.hgetall(analyze_id))))
-
-        # send the id to the container to trigger analyze
-        chosed_container.exec_run(['sh', '-c', 'python remote/analyze_handler.py', analyze_id])
+        REDIS_DATABASE.hset(analyze_id, 'state',
+                            AnalyzeStatus.QUEUED.name)
+        REDIS_DATABASE.hset(analyze_id, 'parts', part_number)
+        REDIS_DATABASE.rpush(
+            'ANALYSES_QUEUE', analyze_id + "-" + str(part_number))
+        LOGGER.info('Part %s is %s for analyze %s.',
+                    part_number, AnalyzeStatus.QUEUED.name, analyze_id)
 
     def getStatus(self, analyze_id):
         LOGGER.info('Get status of analysis %s', analyze_id)
@@ -122,7 +111,7 @@ class RemoteAnalyzeHandler:
     def getResults(self, analyze_id):
         analysis_state = REDIS_DATABASE.hget(analyze_id, 'state')
 
-        if analysis_state == AnalyzeStatus.COMPLETED.name:
+        if analysis_state == AnalyzeStatus.ANALYZE_COMPLETED.name:
             result_path = os.path.join(WORKSPACE, analyze_id, 'result.zip')
 
             with open(result_path, 'rb') as result:
@@ -149,7 +138,11 @@ if __name__ == '__main__':
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
 
-    REDIS_DATABASE = redis.Redis(host='redis', port=6379, db=0, charset="utf-8", decode_responses=True)
+    REDIS_DATABASE = redis.Redis(
+        host='redis', port=6379, db=0, charset="utf-8", decode_responses=True)
+
+    # testing
+    REDIS_DATABASE.flushdb()
 
     LOGGER.info('Starting the server...')
     SERVER.serve()
