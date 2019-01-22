@@ -1,40 +1,40 @@
-<svg id="mermaid-1548192344188" width="100%" xmlns="http://www.w3.org/2000/svg" height="100%" style="max-width:1090px;" viewBox="-50 -10 1090 1221"><style>
+<svg id="mermaid-1548194050679" width="100%" xmlns="http://www.w3.org/2000/svg" height="100%" style="max-width:1090px;" viewBox="-50 -10 1090 1221"><style>
 
 
-#mermaid-1548192344188 .label {
+#mermaid-1548194050679 .label {
   font-family: 'trebuchet ms', verdana, arial;
   color: #333; }
 
-#mermaid-1548192344188 .node rect,
-#mermaid-1548192344188 .node circle,
-#mermaid-1548192344188 .node ellipse,
-#mermaid-1548192344188 .node polygon {
+#mermaid-1548194050679 .node rect,
+#mermaid-1548194050679 .node circle,
+#mermaid-1548194050679 .node ellipse,
+#mermaid-1548194050679 .node polygon {
   fill: #ECECFF;
   stroke: #9370DB;
   stroke-width: 1px; }
 
-#mermaid-1548192344188 .node.clickable {
+#mermaid-1548194050679 .node.clickable {
   cursor: pointer; }
 
-#mermaid-1548192344188 .arrowheadPath {
+#mermaid-1548194050679 .arrowheadPath {
   fill: #333333; }
 
-#mermaid-1548192344188 .edgePath .path {
+#mermaid-1548194050679 .edgePath .path {
   stroke: #333333;
   stroke-width: 1.5px; }
 
-#mermaid-1548192344188 .edgeLabel {
+#mermaid-1548194050679 .edgeLabel {
   background-color: #e8e8e8; }
 
-#mermaid-1548192344188 .cluster rect {
+#mermaid-1548194050679 .cluster rect {
   fill: #ffffde !important;
   stroke: #aaaa33 !important;
   stroke-width: 1px !important; }
 
-#mermaid-1548192344188 .cluster text {
+#mermaid-1548194050679 .cluster text {
   fill: #333; }
 
-#mermaid-1548192344188 div.mermaidTooltip {
+#mermaid-1548194050679 div.mermaidTooltip {
   position: absolute;
   text-align: center;
   max-width: 200px;
@@ -47,314 +47,314 @@
   pointer-events: none;
   z-index: 100; }
 
-#mermaid-1548192344188 .actor {
+#mermaid-1548194050679 .actor {
   stroke: #CCCCFF;
   fill: #ECECFF; }
 
-#mermaid-1548192344188 text.actor {
+#mermaid-1548194050679 text.actor {
   fill: black;
   stroke: none; }
 
-#mermaid-1548192344188 .actor-line {
+#mermaid-1548194050679 .actor-line {
   stroke: grey; }
 
-#mermaid-1548192344188 .messageLine0 {
+#mermaid-1548194050679 .messageLine0 {
   stroke-width: 1.5;
   stroke-dasharray: '2 2';
   stroke: #333; }
 
-#mermaid-1548192344188 .messageLine1 {
+#mermaid-1548194050679 .messageLine1 {
   stroke-width: 1.5;
   stroke-dasharray: '2 2';
   stroke: #333; }
 
-#mermaid-1548192344188 #arrowhead {
+#mermaid-1548194050679 #arrowhead {
   fill: #333; }
 
-#mermaid-1548192344188 #crosshead path {
+#mermaid-1548194050679 #crosshead path {
   fill: #333 !important;
   stroke: #333 !important; }
 
-#mermaid-1548192344188 .messageText {
+#mermaid-1548194050679 .messageText {
   fill: #333;
   stroke: none; }
 
-#mermaid-1548192344188 .labelBox {
+#mermaid-1548194050679 .labelBox {
   stroke: #CCCCFF;
   fill: #ECECFF; }
 
-#mermaid-1548192344188 .labelText {
+#mermaid-1548194050679 .labelText {
   fill: black;
   stroke: none; }
 
-#mermaid-1548192344188 .loopText {
+#mermaid-1548194050679 .loopText {
   fill: black;
   stroke: none; }
 
-#mermaid-1548192344188 .loopLine {
+#mermaid-1548194050679 .loopLine {
   stroke-width: 2;
   stroke-dasharray: '2 2';
   stroke: #CCCCFF; }
 
-#mermaid-1548192344188 .note {
+#mermaid-1548194050679 .note {
   stroke: #aaaa33;
   fill: #fff5ad; }
 
-#mermaid-1548192344188 .noteText {
+#mermaid-1548194050679 .noteText {
   fill: black;
   stroke: none;
   font-family: 'trebuchet ms', verdana, arial;
   font-size: 14px; }
 
-#mermaid-1548192344188 .activation0 {
+#mermaid-1548194050679 .activation0 {
   fill: #f4f4f4;
   stroke: #666; }
 
-#mermaid-1548192344188 .activation1 {
+#mermaid-1548194050679 .activation1 {
   fill: #f4f4f4;
   stroke: #666; }
 
-#mermaid-1548192344188 .activation2 {
+#mermaid-1548194050679 .activation2 {
   fill: #f4f4f4;
   stroke: #666; }
 
 
-#mermaid-1548192344188 .section {
+#mermaid-1548194050679 .section {
   stroke: none;
   opacity: 0.2; }
 
-#mermaid-1548192344188 .section0 {
+#mermaid-1548194050679 .section0 {
   fill: rgba(102, 102, 255, 0.49); }
 
-#mermaid-1548192344188 .section2 {
+#mermaid-1548194050679 .section2 {
   fill: #fff400; }
 
-#mermaid-1548192344188 .section1,
-#mermaid-1548192344188 .section3 {
+#mermaid-1548194050679 .section1,
+#mermaid-1548194050679 .section3 {
   fill: white;
   opacity: 0.2; }
 
-#mermaid-1548192344188 .sectionTitle0 {
+#mermaid-1548194050679 .sectionTitle0 {
   fill: #333; }
 
-#mermaid-1548192344188 .sectionTitle1 {
+#mermaid-1548194050679 .sectionTitle1 {
   fill: #333; }
 
-#mermaid-1548192344188 .sectionTitle2 {
+#mermaid-1548194050679 .sectionTitle2 {
   fill: #333; }
 
-#mermaid-1548192344188 .sectionTitle3 {
+#mermaid-1548194050679 .sectionTitle3 {
   fill: #333; }
 
-#mermaid-1548192344188 .sectionTitle {
+#mermaid-1548194050679 .sectionTitle {
   text-anchor: start;
   font-size: 11px;
   text-height: 14px; }
 
 
-#mermaid-1548192344188 .grid .tick {
+#mermaid-1548194050679 .grid .tick {
   stroke: lightgrey;
   opacity: 0.3;
   shape-rendering: crispEdges; }
 
-#mermaid-1548192344188 .grid path {
+#mermaid-1548194050679 .grid path {
   stroke-width: 0; }
 
 
-#mermaid-1548192344188 .today {
+#mermaid-1548194050679 .today {
   fill: none;
   stroke: red;
   stroke-width: 2px; }
 
 
 
-#mermaid-1548192344188 .task {
+#mermaid-1548194050679 .task {
   stroke-width: 2; }
 
-#mermaid-1548192344188 .taskText {
+#mermaid-1548194050679 .taskText {
   text-anchor: middle;
   font-size: 11px; }
 
-#mermaid-1548192344188 .taskTextOutsideRight {
+#mermaid-1548194050679 .taskTextOutsideRight {
   fill: black;
   text-anchor: start;
   font-size: 11px; }
 
-#mermaid-1548192344188 .taskTextOutsideLeft {
+#mermaid-1548194050679 .taskTextOutsideLeft {
   fill: black;
   text-anchor: end;
   font-size: 11px; }
 
 
-#mermaid-1548192344188 .taskText0,
-#mermaid-1548192344188 .taskText1,
-#mermaid-1548192344188 .taskText2,
-#mermaid-1548192344188 .taskText3 {
+#mermaid-1548194050679 .taskText0,
+#mermaid-1548194050679 .taskText1,
+#mermaid-1548194050679 .taskText2,
+#mermaid-1548194050679 .taskText3 {
   fill: white; }
 
-#mermaid-1548192344188 .task0,
-#mermaid-1548192344188 .task1,
-#mermaid-1548192344188 .task2,
-#mermaid-1548192344188 .task3 {
+#mermaid-1548194050679 .task0,
+#mermaid-1548194050679 .task1,
+#mermaid-1548194050679 .task2,
+#mermaid-1548194050679 .task3 {
   fill: #8a90dd;
   stroke: #534fbc; }
 
-#mermaid-1548192344188 .taskTextOutside0,
-#mermaid-1548192344188 .taskTextOutside2 {
+#mermaid-1548194050679 .taskTextOutside0,
+#mermaid-1548194050679 .taskTextOutside2 {
   fill: black; }
 
-#mermaid-1548192344188 .taskTextOutside1,
-#mermaid-1548192344188 .taskTextOutside3 {
+#mermaid-1548194050679 .taskTextOutside1,
+#mermaid-1548194050679 .taskTextOutside3 {
   fill: black; }
 
 
-#mermaid-1548192344188 .active0,
-#mermaid-1548192344188 .active1,
-#mermaid-1548192344188 .active2,
-#mermaid-1548192344188 .active3 {
+#mermaid-1548194050679 .active0,
+#mermaid-1548194050679 .active1,
+#mermaid-1548194050679 .active2,
+#mermaid-1548194050679 .active3 {
   fill: #bfc7ff;
   stroke: #534fbc; }
 
-#mermaid-1548192344188 .activeText0,
-#mermaid-1548192344188 .activeText1,
-#mermaid-1548192344188 .activeText2,
-#mermaid-1548192344188 .activeText3 {
+#mermaid-1548194050679 .activeText0,
+#mermaid-1548194050679 .activeText1,
+#mermaid-1548194050679 .activeText2,
+#mermaid-1548194050679 .activeText3 {
   fill: black !important; }
 
 
-#mermaid-1548192344188 .done0,
-#mermaid-1548192344188 .done1,
-#mermaid-1548192344188 .done2,
-#mermaid-1548192344188 .done3 {
+#mermaid-1548194050679 .done0,
+#mermaid-1548194050679 .done1,
+#mermaid-1548194050679 .done2,
+#mermaid-1548194050679 .done3 {
   stroke: grey;
   fill: lightgrey;
   stroke-width: 2; }
 
-#mermaid-1548192344188 .doneText0,
-#mermaid-1548192344188 .doneText1,
-#mermaid-1548192344188 .doneText2,
-#mermaid-1548192344188 .doneText3 {
+#mermaid-1548194050679 .doneText0,
+#mermaid-1548194050679 .doneText1,
+#mermaid-1548194050679 .doneText2,
+#mermaid-1548194050679 .doneText3 {
   fill: black !important; }
 
 
-#mermaid-1548192344188 .crit0,
-#mermaid-1548192344188 .crit1,
-#mermaid-1548192344188 .crit2,
-#mermaid-1548192344188 .crit3 {
+#mermaid-1548194050679 .crit0,
+#mermaid-1548194050679 .crit1,
+#mermaid-1548194050679 .crit2,
+#mermaid-1548194050679 .crit3 {
   stroke: #ff8888;
   fill: red;
   stroke-width: 2; }
 
-#mermaid-1548192344188 .activeCrit0,
-#mermaid-1548192344188 .activeCrit1,
-#mermaid-1548192344188 .activeCrit2,
-#mermaid-1548192344188 .activeCrit3 {
+#mermaid-1548194050679 .activeCrit0,
+#mermaid-1548194050679 .activeCrit1,
+#mermaid-1548194050679 .activeCrit2,
+#mermaid-1548194050679 .activeCrit3 {
   stroke: #ff8888;
   fill: #bfc7ff;
   stroke-width: 2; }
 
-#mermaid-1548192344188 .doneCrit0,
-#mermaid-1548192344188 .doneCrit1,
-#mermaid-1548192344188 .doneCrit2,
-#mermaid-1548192344188 .doneCrit3 {
+#mermaid-1548194050679 .doneCrit0,
+#mermaid-1548194050679 .doneCrit1,
+#mermaid-1548194050679 .doneCrit2,
+#mermaid-1548194050679 .doneCrit3 {
   stroke: #ff8888;
   fill: lightgrey;
   stroke-width: 2;
   cursor: pointer;
   shape-rendering: crispEdges; }
 
-#mermaid-1548192344188 .doneCritText0,
-#mermaid-1548192344188 .doneCritText1,
-#mermaid-1548192344188 .doneCritText2,
-#mermaid-1548192344188 .doneCritText3 {
+#mermaid-1548194050679 .doneCritText0,
+#mermaid-1548194050679 .doneCritText1,
+#mermaid-1548194050679 .doneCritText2,
+#mermaid-1548194050679 .doneCritText3 {
   fill: black !important; }
 
-#mermaid-1548192344188 .activeCritText0,
-#mermaid-1548192344188 .activeCritText1,
-#mermaid-1548192344188 .activeCritText2,
-#mermaid-1548192344188 .activeCritText3 {
+#mermaid-1548194050679 .activeCritText0,
+#mermaid-1548194050679 .activeCritText1,
+#mermaid-1548194050679 .activeCritText2,
+#mermaid-1548194050679 .activeCritText3 {
   fill: black !important; }
 
-#mermaid-1548192344188 .titleText {
+#mermaid-1548194050679 .titleText {
   text-anchor: middle;
   font-size: 18px;
   fill: black; }
 
-#mermaid-1548192344188 g.classGroup text {
+#mermaid-1548194050679 g.classGroup text {
   fill: #9370DB;
   stroke: none;
   font-family: 'trebuchet ms', verdana, arial;
   font-size: 10px; }
 
-#mermaid-1548192344188 g.classGroup rect {
+#mermaid-1548194050679 g.classGroup rect {
   fill: #ECECFF;
   stroke: #9370DB; }
 
-#mermaid-1548192344188 g.classGroup line {
+#mermaid-1548194050679 g.classGroup line {
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 .classLabel .box {
+#mermaid-1548194050679 .classLabel .box {
   stroke: none;
   stroke-width: 0;
   fill: #ECECFF;
   opacity: 0.5; }
 
-#mermaid-1548192344188 .classLabel .label {
+#mermaid-1548194050679 .classLabel .label {
   fill: #9370DB;
   font-size: 10px; }
 
-#mermaid-1548192344188 .relation {
+#mermaid-1548194050679 .relation {
   stroke: #9370DB;
   stroke-width: 1;
   fill: none; }
 
-#mermaid-1548192344188 #compositionStart {
+#mermaid-1548194050679 #compositionStart {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #compositionEnd {
+#mermaid-1548194050679 #compositionEnd {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #aggregationStart {
+#mermaid-1548194050679 #aggregationStart {
   fill: #ECECFF;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #aggregationEnd {
+#mermaid-1548194050679 #aggregationEnd {
   fill: #ECECFF;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #dependencyStart {
+#mermaid-1548194050679 #dependencyStart {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #dependencyEnd {
+#mermaid-1548194050679 #dependencyEnd {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #extensionStart {
+#mermaid-1548194050679 #extensionStart {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 #extensionEnd {
+#mermaid-1548194050679 #extensionEnd {
   fill: #9370DB;
   stroke: #9370DB;
   stroke-width: 1; }
 
-#mermaid-1548192344188 .commit-id,
-#mermaid-1548192344188 .commit-msg,
-#mermaid-1548192344188 .branch-label {
+#mermaid-1548194050679 .commit-id,
+#mermaid-1548194050679 .commit-msg,
+#mermaid-1548194050679 .branch-label {
   fill: lightgrey;
   color: lightgrey; }
-</style><style>#mermaid-1548192344188 {
+</style><style>#mermaid-1548194050679 {
     color: rgba(0, 0, 0, 0.65098);
     font: normal normal normal normal 14px/21px "Chinese Quote", -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", "Helvetica Neue", Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-  }</style><g></g><g><line id="actor90" x1="75" y1="5" x2="75" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">User</tspan></text></g><g><line id="actor91" x1="275" y1="5" x2="275" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="200" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">RemoteClient</tspan></text></g><g><line id="actor92" x1="475" y1="5" x2="475" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="400" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">RemoteAgent</tspan></text></g><g><line id="actor93" x1="675" y1="5" x2="675" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="600" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">Redis</tspan></text></g><g><line id="actor94" x1="875" y1="5" x2="875" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="800" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">CodeChecker container</tspan></text></g><defs><marker id="arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto"><path d="M 0,0 V 4 L6,2 Z"></path></marker></defs><defs><marker id="crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="16" refY="4"><path fill="black" stroke="#000000" stroke-width="1px" d="M 9,2 V 6 L16,4 Z" style="stroke-dasharray: 0px, 0px;"></path><path fill="none" stroke="#000000" stroke-width="1px" d="M 0,1 L 6,7 M 6,1 L 0,7" style="stroke-dasharray: 0px, 0px;"></path></marker></defs><g><text x="175" y="93" class="messageText" style="text-anchor: middle;">remote_analyze analyze</text><line x1="75" y1="100" x2="275" y2="100" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="102" fill="#EDF2AE" stroke="#666" width="10" height="603" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="128" class="messageText" style="text-anchor: middle;">getId() request</text><line x1="280" y1="135" x2="475" y2="135" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="137" fill="#EDF2AE" stroke="#666" width="10" height="68" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="163" class="messageText" style="text-anchor: middle;">put AnalyzeId</text><line x1="480" y1="170" x2="675" y2="170" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="198" class="messageText" style="text-anchor: middle;">getId() response</text><line x1="470" y1="205" x2="280" y2="205" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="233" class="messageText" style="text-anchor: middle;">return AnalyzeId</text><line x1="270" y1="240" x2="75" y2="240" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="280" y="268" class="messageText" style="text-anchor: middle;">collect TU</text><path d="M 280,275 C 340,265 340,305 280,295" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></path></g><g><text x="377.5" y="333" class="messageText" style="text-anchor: middle;">analyze(AnalyzeId, zip) request</text><line x1="280" y1="340" x2="475" y2="340" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="342" fill="#EDF2AE" stroke="#666" width="10" height="33" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="368" class="messageText" style="text-anchor: middle;">put AnalyzeId and analyzation part number to task queue</text><line x1="480" y1="375" x2="675" y2="375" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="775" y="428" class="messageText" style="text-anchor: middle;">get task</text><line x1="875" y1="435" x2="675" y2="435" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="870" y="437" fill="#EDF2AE" stroke="#666" width="10" height="233" rx="0" ry="0" class="activation0"></rect></g><g><line x1="665" y1="385" x2="885" y2="385" class="loopLine"></line><line x1="885" y1="385" x2="885" y2="445" class="loopLine"></line><line x1="665" y1="445" x2="885" y2="445" class="loopLine"></line><line x1="665" y1="385" x2="665" y2="445" class="loopLine"></line><polygon points="665,385 715,385 715,398 706.6,405 665,405" class="labelBox"></polygon><text x="672.5" y="400" fill="black" class="labelText"><tspan x="672.5" fill="black">loop</tspan></text><text x="775" y="400" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="775" fill="black">[ Every 30 seconds ]</tspan></text></g><g><text x="772.5" y="498" class="messageText" style="text-anchor: middle;">task queue empty</text><line x1="675" y1="505" x2="870" y2="505" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="772.5" y="553" class="messageText" style="text-anchor: middle;">return AnalyzeId and analyzation part number</text><line x1="675" y1="560" x2="870" y2="560" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="880" y="588" class="messageText" style="text-anchor: middle;">analyze TU</text><path d="M 880,595 C 940,585 940,625 880,615" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></path></g><g><text x="772.5" y="653" class="messageText" style="text-anchor: middle;">set task to done</text><line x1="870" y1="660" x2="675" y2="660" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><line x1="665" y1="455" x2="990" y2="455" class="loopLine"></line><line x1="990" y1="455" x2="990" y2="670" class="loopLine"></line><line x1="665" y1="670" x2="990" y2="670" class="loopLine"></line><line x1="665" y1="455" x2="665" y2="670" class="loopLine"></line><line x1="665" y1="515" x2="990" y2="515" class="loopLine" style="stroke-dasharray: 3px, 3px;"></line><polygon points="665,455 715,455 715,468 706.6,475 665,475" class="labelBox"></polygon><text x="672.5" y="470" fill="black" class="labelText"><tspan x="672.5" fill="black">alt</tspan></text><text x="827.5" y="470" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="827.5" fill="black">[ is sick ]</tspan></text><text x="827.5" y="530" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="827.5" fill="black">[ is well ]</tspan></text></g><g><text x="172.5" y="698" class="messageText" style="text-anchor: middle;">return stored successful message</text><line x1="270" y1="705" x2="75" y2="705" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="175" y="733" class="messageText" style="text-anchor: middle;">remote_analyze getStatus</text><line x1="75" y1="740" x2="275" y2="740" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="742" fill="#EDF2AE" stroke="#666" width="10" height="173" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="768" class="messageText" style="text-anchor: middle;">getStatus(AnalyzeId) request</text><line x1="280" y1="775" x2="475" y2="775" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="777" fill="#EDF2AE" stroke="#666" width="10" height="103" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="803" class="messageText" style="text-anchor: middle;">get status by AnalyzeId</text><line x1="480" y1="810" x2="675" y2="810" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="577.5" y="838" class="messageText" style="text-anchor: middle;">return status</text><line x1="675" y1="845" x2="480" y2="845" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="873" class="messageText" style="text-anchor: middle;">getStatus(AnalyzeId) response</text><line x1="470" y1="880" x2="280" y2="880" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="908" class="messageText" style="text-anchor: middle;">return status</text><line x1="270" y1="915" x2="75" y2="915" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="175" y="943" class="messageText" style="text-anchor: middle;">remote_analyze getResults</text><line x1="75" y1="950" x2="275" y2="950" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="952" fill="#EDF2AE" stroke="#666" width="10" height="173" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="978" class="messageText" style="text-anchor: middle;">getResults(AnalyzeId) request</text><line x1="280" y1="985" x2="475" y2="985" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="987" fill="#EDF2AE" stroke="#666" width="10" height="103" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="1013" class="messageText" style="text-anchor: middle;">get status by AnalyzeId</text><line x1="480" y1="1020" x2="675" y2="1020" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="577.5" y="1048" class="messageText" style="text-anchor: middle;">return status</text><line x1="675" y1="1055" x2="480" y2="1055" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="1083" class="messageText" style="text-anchor: middle;">getResults(AnalyzeId) response</text><line x1="470" y1="1090" x2="280" y2="1090" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="1118" class="messageText" style="text-anchor: middle;">return results</text><line x1="270" y1="1125" x2="75" y2="1125" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="0" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">User</tspan></text></g><g><rect x="200" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">RemoteClient</tspan></text></g><g><rect x="400" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">RemoteAgent</tspan></text></g><g><rect x="600" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">Redis</tspan></text></g><g><rect x="800" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">CodeChecker container</tspan></text></g></svg>
+  }</style><g></g><g><line id="actor150" x1="75" y1="5" x2="75" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="0" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">User</tspan></text></g><g><line id="actor151" x1="275" y1="5" x2="275" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="200" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">RemoteClient</tspan></text></g><g><line id="actor152" x1="475" y1="5" x2="475" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="400" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">RemoteAgent</tspan></text></g><g><line id="actor153" x1="675" y1="5" x2="675" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="600" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">Redis</tspan></text></g><g><line id="actor154" x1="875" y1="5" x2="875" y2="1210" class="actor-line" stroke-width="0.5px" stroke="#999"></line><rect x="800" y="0" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="32.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">CodeChecker container</tspan></text></g><defs><marker id="arrowhead" refX="5" refY="2" markerWidth="6" markerHeight="4" orient="auto"><path d="M 0,0 V 4 L6,2 Z"></path></marker></defs><defs><marker id="crosshead" markerWidth="15" markerHeight="8" orient="auto" refX="16" refY="4"><path fill="black" stroke="#000000" stroke-width="1px" d="M 9,2 V 6 L16,4 Z" style="stroke-dasharray: 0px, 0px;"></path><path fill="none" stroke="#000000" stroke-width="1px" d="M 0,1 L 6,7 M 6,1 L 0,7" style="stroke-dasharray: 0px, 0px;"></path></marker></defs><g><text x="175" y="93" class="messageText" style="text-anchor: middle;">remote_analyze analyze</text><line x1="75" y1="100" x2="275" y2="100" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="102" fill="#EDF2AE" stroke="#666" width="10" height="603" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="128" class="messageText" style="text-anchor: middle;">getId() request</text><line x1="280" y1="135" x2="475" y2="135" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="137" fill="#EDF2AE" stroke="#666" width="10" height="68" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="163" class="messageText" style="text-anchor: middle;">put AnalyzeId</text><line x1="480" y1="170" x2="675" y2="170" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="198" class="messageText" style="text-anchor: middle;">getId() response</text><line x1="470" y1="205" x2="280" y2="205" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="233" class="messageText" style="text-anchor: middle;">return AnalyzeId</text><line x1="270" y1="240" x2="75" y2="240" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="280" y="268" class="messageText" style="text-anchor: middle;">collect TU</text><path d="M 280,275 C 340,265 340,305 280,295" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></path></g><g><text x="377.5" y="333" class="messageText" style="text-anchor: middle;">analyze(AnalyzeId, zip) request</text><line x1="280" y1="340" x2="475" y2="340" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="342" fill="#EDF2AE" stroke="#666" width="10" height="33" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="368" class="messageText" style="text-anchor: middle;">put AnalyzeId and analyzation part number to task queue</text><line x1="480" y1="375" x2="675" y2="375" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="775" y="428" class="messageText" style="text-anchor: middle;">get task</text><line x1="875" y1="435" x2="675" y2="435" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="870" y="437" fill="#EDF2AE" stroke="#666" width="10" height="233" rx="0" ry="0" class="activation0"></rect></g><g><line x1="665" y1="385" x2="885" y2="385" class="loopLine"></line><line x1="885" y1="385" x2="885" y2="445" class="loopLine"></line><line x1="665" y1="445" x2="885" y2="445" class="loopLine"></line><line x1="665" y1="385" x2="665" y2="445" class="loopLine"></line><polygon points="665,385 715,385 715,398 706.6,405 665,405" class="labelBox"></polygon><text x="672.5" y="400" fill="black" class="labelText"><tspan x="672.5" fill="black">loop</tspan></text><text x="775" y="400" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="775" fill="black">[ Every 30 seconds ]</tspan></text></g><g><text x="772.5" y="498" class="messageText" style="text-anchor: middle;">task queue empty</text><line x1="675" y1="505" x2="870" y2="505" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="772.5" y="553" class="messageText" style="text-anchor: middle;">return AnalyzeId and analyzation part number</text><line x1="675" y1="560" x2="870" y2="560" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="880" y="588" class="messageText" style="text-anchor: middle;">analyze TU</text><path d="M 880,595 C 940,585 940,625 880,615" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></path></g><g><text x="772.5" y="653" class="messageText" style="text-anchor: middle;">set task to done</text><line x1="870" y1="660" x2="675" y2="660" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><line x1="665" y1="455" x2="990" y2="455" class="loopLine"></line><line x1="990" y1="455" x2="990" y2="670" class="loopLine"></line><line x1="665" y1="670" x2="990" y2="670" class="loopLine"></line><line x1="665" y1="455" x2="665" y2="670" class="loopLine"></line><line x1="665" y1="515" x2="990" y2="515" class="loopLine" style="stroke-dasharray: 3px, 3px;"></line><polygon points="665,455 715,455 715,468 706.6,475 665,475" class="labelBox"></polygon><text x="672.5" y="470" fill="black" class="labelText"><tspan x="672.5" fill="black">alt</tspan></text><text x="827.5" y="470" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="827.5" fill="black">[ task queue empty ]</tspan></text><text x="827.5" y="530" fill="black" class="loopText" style="text-anchor: middle;"><tspan x="827.5" fill="black">[ task queue is not empty ]</tspan></text></g><g><text x="172.5" y="698" class="messageText" style="text-anchor: middle;">return stored successful message</text><line x1="270" y1="705" x2="75" y2="705" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="175" y="733" class="messageText" style="text-anchor: middle;">remote_analyze getStatus</text><line x1="75" y1="740" x2="275" y2="740" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="742" fill="#EDF2AE" stroke="#666" width="10" height="173" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="768" class="messageText" style="text-anchor: middle;">getStatus(AnalyzeId) request</text><line x1="280" y1="775" x2="475" y2="775" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="777" fill="#EDF2AE" stroke="#666" width="10" height="103" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="803" class="messageText" style="text-anchor: middle;">get status by AnalyzeId</text><line x1="480" y1="810" x2="675" y2="810" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="577.5" y="838" class="messageText" style="text-anchor: middle;">return status</text><line x1="675" y1="845" x2="480" y2="845" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="873" class="messageText" style="text-anchor: middle;">getStatus(AnalyzeId) response</text><line x1="470" y1="880" x2="280" y2="880" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="908" class="messageText" style="text-anchor: middle;">return status</text><line x1="270" y1="915" x2="75" y2="915" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="175" y="943" class="messageText" style="text-anchor: middle;">remote_analyze getResults</text><line x1="75" y1="950" x2="275" y2="950" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="270" y="952" fill="#EDF2AE" stroke="#666" width="10" height="173" rx="0" ry="0" class="activation0"></rect></g><g><text x="377.5" y="978" class="messageText" style="text-anchor: middle;">getResults(AnalyzeId) request</text><line x1="280" y1="985" x2="475" y2="985" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="470" y="987" fill="#EDF2AE" stroke="#666" width="10" height="103" rx="0" ry="0" class="activation0"></rect></g><g><text x="577.5" y="1013" class="messageText" style="text-anchor: middle;">get status by AnalyzeId</text><line x1="480" y1="1020" x2="675" y2="1020" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="577.5" y="1048" class="messageText" style="text-anchor: middle;">return status</text><line x1="675" y1="1055" x2="480" y2="1055" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="375" y="1083" class="messageText" style="text-anchor: middle;">getResults(AnalyzeId) response</text><line x1="470" y1="1090" x2="280" y2="1090" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><text x="172.5" y="1118" class="messageText" style="text-anchor: middle;">return results</text><line x1="270" y1="1125" x2="75" y2="1125" class="messageLine0" stroke-width="2" stroke="black" marker-end="url(#arrowhead)" style="fill: none;"></line></g><g><rect x="0" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="75" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="75" dy="0">User</tspan></text></g><g><rect x="200" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="275" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="275" dy="0">RemoteClient</tspan></text></g><g><rect x="400" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="475" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="475" dy="0">RemoteAgent</tspan></text></g><g><rect x="600" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="675" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="675" dy="0">Redis</tspan></text></g><g><rect x="800" y="1145" fill="#eaeaea" stroke="#666" width="150" height="65" rx="3" ry="3" class="actor"></rect><text x="875" y="1177.5" dominant-baseline="central" alignment-baseline="central" class="actor" style="text-anchor: middle; font-size: 14px; font-family: Open-Sans, sans-serif;"><tspan x="875" dy="0">CodeChecker container</tspan></text></g></svg>

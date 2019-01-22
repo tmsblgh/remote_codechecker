@@ -27,7 +27,7 @@ docker build -t codechecker .
 #### Remote CodeChecker part
 
 ```sh
-# Check out my forked CodeChecker source code.
+# Check out Remote CodeChecker source code.
 git clone https://github.com/tmsblgh/remote_codechecker
 cd remote_codechecker
 
