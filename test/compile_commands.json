@@ -10,11 +10,6 @@
         "file": "divide_zero.cpp"
     },
     {
-        "command": "g++ -c file_to_be_skipped.cpp -Wno-all -Wno-extra",
-        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
-        "file": "file_to_be_skipped.cpp"
-    },
-    {
         "command": "g++ -c new_delete.cpp -Wno-all -Wno-extra",
         "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
         "file": "new_delete.cpp"
@@ -30,11 +25,6 @@
         "file": "stack_address_escape.cpp"
     },
     {
-        "command": "g++ -c skip_header.cpp -Wno-all -Wno-extra -Wno-division-by-zero",
-        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
-        "file": "skip_header.cpp"
-    },
-    {
         "command": "g++ -c path_begin1.cpp -Wno-all -Wno-extra",
         "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
         "file": "path_begin1.cpp"
@@ -43,10 +33,5 @@
         "command": "g++ -c path_begin2.cpp -Wno-all -Wno-extra",
         "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
         "file": "path_begin2.cpp"
-    },
-    {
-        "command": "g++ -c statistical_checkers.cpp -Wno-all -Wno-extra",
-        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
-        "file": "statistical_checkers.cpp"
     }
 ]
