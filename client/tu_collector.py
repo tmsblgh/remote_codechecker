@@ -226,7 +226,7 @@ def add_sources_to_zip(zip_file, files):
                               "again!", f)
 
 
-def zip_tu_files(zip_file, compilation_database, write_mode='w'):
+def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mode='w'):
     """
     Collects all files to a zip file which are required for the compilation of
     the translation units described by the given compilation database.
@@ -260,8 +260,8 @@ def zip_tu_files(zip_file, compilation_database, write_mode='w'):
             error_messages += buildaction['file'] + '\n' \
                 + '-' * len(buildaction['file']) + '\n' + err + '\n'
         
-        if args.list_dependencies:
-            with open(args.list_dependencies,'w') as dependencies:
+        if dependency_list:
+            with open(dependency_list,'w') as dependencies:
                 dependencies.write(json.dumps(tu_files))
             sys.exit(0)
 
@@ -346,7 +346,7 @@ used to generate a log file on the fly.""")
             'command': args.command,
             'directory': os.getcwd()}]
 
-    zip_tu_files(args.zip, compilation_db)
+    zip_tu_files(args.zip, compilation_db, args.list_dependencies)
 
 
 if __name__ == "__main__":

@@ -71,11 +71,8 @@ def analyze(args):
                     break
 
             absolute_file_path = os.path.abspath(file_path)
-
             modified_command = command.replace(file_path, absolute_file_path)
-
             file_path = absolute_file_path
-
             build_commands[file_path] = modified_command
         else:
             with open(args.compilation_database) as json_file:
@@ -93,12 +90,12 @@ def analyze(args):
         LOGGER.debug('%s', build_commands)
 
         for file_path in build_commands:
-            with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
+            with tempfile.NamedTemporaryFile() as list_of_dependecies:
                 command = ["python2", "tu_collector.py"]
                 command.append("-b")
                 command.append("%s" % build_commands[file_path])
-                command.append("-z")
-                command.append("%s" % zip_file.name)
+                command.append("-ld")
+                command.append("%s" % list_of_dependecies.name)
 
             process = subprocess.Popen(command,
                                        stdin=subprocess.PIPE,
@@ -107,19 +104,34 @@ def analyze(args):
 
             process.wait()
 
-            with zipfile.ZipFile(zip_file.name, 'a') as zipf:
-                zipf.writestr('sources-root/build_command',
-                              build_commands[file_path])
-                zipf.writestr('sources-root/file_path', file_path)
+            with open(list_of_dependecies.name) as dependencies:
+                set_of_dependencies = json.loads(dependencies.read())
+                LOGGER.info(type(set_of_dependencies))
 
-            tempfile_names.append(zip_file.name)
+                with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
+                    with zipfile.ZipFile(zip_file, 'a') as archive:
+                        for f in set_of_dependencies:
+                            archive_path = os.path.join('sources-root', f.lstrip(os.sep))
+
+                            try:
+                                archive.getinfo(archive_path)
+                            except KeyError:
+                                archive.write(f, archive_path, zipfile.ZIP_DEFLATED)
+                            else:
+                                LOGGER.debug("'%s' is already in the ZIP file, won't add it "
+                                            "again!", f)
+
+                            archive.writestr('sources-root/build_command', build_commands[file_path])
+                            archive.writestr('sources-root/file_path', file_path)
+
+                    tempfile_names.append(zip_file.name)
 
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
                 analyzeId = client.getId()
                 LOGGER.info('Received id %s', analyzeId)
             except InvalidOperation as e:
-                logger.error('InvalidOperation: %r' % e)
+                LOGGER.error('InvalidOperation: %r' % e)
 
             for tempfile_name in tempfile_names:
                 with open(tempfile_name, 'rb') as source_file:
