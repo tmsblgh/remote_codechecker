@@ -1,0 +1,37 @@
+[
+    {
+        "command": "g++ -c call_and_message.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "call_and_message.cpp"
+    },
+    {
+        "command": "g++ -c divide_zero.cpp -Wno-all -Wno-extra -Wno-division-by-zero",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "divide_zero.cpp"
+    },
+    {
+        "command": "g++ -c new_delete.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "new_delete.cpp"
+    },
+    {
+        "command": "g++ -c null_dereference.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "null_dereference.cpp"
+    },
+    {
+        "command": "g++ -c stack_address_escape.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "stack_address_escape.cpp"
+    },
+    {
+        "command": "g++ -c path_begin1.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "path_begin1.cpp"
+    },
+    {
+        "command": "g++ -c path_begin2.cpp -Wno-all -Wno-extra",
+        "directory": "/Users/tmsblgh/Desktop/remote_codechecker/test/",
+        "file": "path_begin2.cpp"
+    }
+]

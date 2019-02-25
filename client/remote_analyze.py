@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import sys
 sys.path.append('../gen-py')
 import argparse
@@ -8,6 +9,8 @@ import zipfile
 import logging
 import zlib
 import tempfile
+import json
+import zipfile
 
 from contextlib import AbstractContextManager
 
@@ -57,21 +60,59 @@ def analyze(args):
     """
 
     try:
-        with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
-            command = ["python2", "tu_collector.py"]
-            command.append("-b")
-            command.append("%s" % args.build_command)
-            command.append("-z")
-            command.append("%s" % zip_file.name)
+        build_commands = {}
+        tempfile_names = []
 
-        process = subprocess.Popen(command,
-                                   stdin=subprocess.PIPE,
-                                   stdout=subprocess.PIPE,
-                                   stderr=subprocess.PIPE)
+        if args.build_command:
+            command = args.build_command
+            for part in command.split(' '):
+                if part.endswith('.cpp'):
+                    file_path = part
+                    break
 
-        process.wait()
+            absolute_file_path = os.path.abspath(file_path)
 
-        LOGGER.debug('Zip file name %s' % zip_file.name)
+            modified_command = command.replace(file_path, absolute_file_path)
+
+            file_path = absolute_file_path
+
+            build_commands[file_path] = modified_command
+        else:
+            with open(args.compilation_database) as json_file:
+                compilation_database = json.load(json_file)
+                for item in compilation_database:
+                    command = item['command']
+                    directory = item['directory']
+                    file_name = item['file']
+
+                    file_path = directory + file_name
+
+                    modified_command = command.replace(file_name, file_path)
+                    build_commands[file_path] = modified_command
+
+        LOGGER.debug('%s', build_commands)
+
+        for file_path in build_commands:
+            with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
+                command = ["python2", "tu_collector.py"]
+                command.append("-b")
+                command.append("%s" % build_commands[file_path])
+                command.append("-z")
+                command.append("%s" % zip_file.name)
+
+            process = subprocess.Popen(command,
+                                       stdin=subprocess.PIPE,
+                                       stdout=subprocess.PIPE,
+                                       stderr=subprocess.PIPE)
+
+            process.wait()
+
+            with zipfile.ZipFile(zip_file.name, 'a') as zipf:
+                zipf.writestr('sources-root/build_command',
+                              build_commands[file_path])
+                zipf.writestr('sources-root/file_path', file_path)
+
+            tempfile_names.append(zip_file.name)
 
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
@@ -80,14 +121,16 @@ def analyze(args):
             except InvalidOperation as e:
                 logger.error('InvalidOperation: %r' % e)
 
-            with open(zip_file.name, 'rb') as source_file:
-                file_content = source_file.read()
+            for tempfile_name in tempfile_names:
+                with open(tempfile_name, 'rb') as source_file:
+                    file_content = source_file.read()
 
-            try:
-                response = client.analyze(analyzeId, file_content)
-                LOGGER.info('Stored sources for id %s', analyzeId)
-            except InvalidOperation as e:
-                LOGGER.error('InvalidOperation: %r' % e)
+                    try:
+                        response = client.analyze(analyzeId, file_content)
+                    except InvalidOperation as e:
+                        LOGGER.error('InvalidOperation: %r' % e)
+
+            LOGGER.info('Stored sources for id %s', analyzeId)
 
     except Thrift.TException as thrift_exception:
         LOGGER.error('%s' % (thrift_exception.message))
@@ -146,9 +189,12 @@ def main():
     subparsers = parser.add_subparsers(help='sub-command help')
 
     parser_analyze = subparsers.add_parser('analyze', help='analyze help')
-    parser_analyze.add_argument('-b', '--build', type=str,
-                                dest='build_command', required=True, help="...")
-    parser_analyze.set_defaults(func=analyze)
+    group = parser_analyze.add_mutually_exclusive_group()
+    group.add_argument('-b', '--build', type=str,
+                       dest='build_command', help="...")
+    group.add_argument('-cdb', '--compilation_database', type=str,
+                       dest='compilation_database', help="...")
+    group.set_defaults(func=analyze)
 
     parser_status = subparsers.add_parser('status', help='status help')
     parser_status.add_argument('-id', '--id', type=str,
