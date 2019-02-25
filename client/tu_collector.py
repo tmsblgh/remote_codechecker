@@ -259,6 +259,11 @@ def zip_tu_files(zip_file, compilation_database, write_mode='w'):
         if err:
             error_messages += buildaction['file'] + '\n' \
                 + '-' * len(buildaction['file']) + '\n' + err + '\n'
+        
+        if args.list_dependencies:
+            with open(args.list_dependencies,'w') as dependencies:
+                dependencies.write(json.dumps(tu_files))
+            sys.exit(0)
 
     if write_mode == 'a' and os.path.isfile(zip_file):
         with zipfile.ZipFile(zip_file) as archive:
@@ -308,6 +313,10 @@ used to generate a log file on the fly.""")
                         help="This flag restricts the collection on the build "
                              "actions of which the compiled source file "
                              "matches this path. E.g.: /path/to/*/files")
+    
+    parser.add_argument('-ld', '--list-dependecies', dest='list_dependencies',
+                        type=str, required=False,
+                        help="Output list of dependecies.")
 
     args = parser.parse_args()
 
