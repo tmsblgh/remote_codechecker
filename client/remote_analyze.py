@@ -11,6 +11,8 @@ import zlib
 import tempfile
 import json
 import zipfile
+import hashlib
+import json
 
 from contextlib import AbstractContextManager
 
@@ -47,6 +49,25 @@ class RemoteAnalayzerClient(AbstractContextManager):
         self.transport.close()
 
 
+def remove_files_from_archive(original_zip, files_to_remove):
+    LOGGER.info('Remove files from the archive. [%s]' % files_to_remove)
+    LOGGER.info('Old zip %s' % original_zip)
+    with zipfile.ZipFile(original_zip, 'r') as zipf:
+        LOGGER.info(zipf.namelist())
+
+    with zipfile.ZipFile(original_zip, 'a') as zipf:
+        with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
+            LOGGER.info('List %s' % zipf.namelist())
+            for item in zipf.namelist():
+                LOGGER.info('File %s' % item.filename)
+                buffer = zipf.read(item.filename)
+                if item.filename in files_to_remove:
+                    zip_file.writestr(item, buffer)
+
+            LOGGER.info('New zip %s' % zip_file.name)
+            return zip_file.name
+
+
 def analyze(args):
     """
     This method tries to collect files based on the build command for the
@@ -56,13 +77,11 @@ def analyze(args):
     analysis.
 
     Then the script saves the zip file to the workspace/{received-uuid}
-    directory .
+    directory.
     """
 
     try:
         build_commands = {}
-        tempfile_names = []
-        analyzeId = None
 
         if args.build_command:
             command = args.build_command
@@ -88,7 +107,9 @@ def analyze(args):
                     modified_command = command.replace(file_name, file_path)
                     build_commands[file_path] = modified_command
 
-        LOGGER.debug('%s', build_commands)
+        LOGGER.debug('Build commands: %s', build_commands)
+
+        analyzeId = None
 
         for file_path in build_commands:
             with tempfile.NamedTemporaryFile() as list_of_dependecies:
@@ -108,9 +129,38 @@ def analyze(args):
 
             LOGGER.debug('List temp file %s' % list_of_dependecies.name)
 
+            files_and_hashes = {}
+
             with open(list_of_dependecies.name) as dependencies:
                 set_of_dependencies = json.loads(dependencies.read())
                 LOGGER.debug(set_of_dependencies)
+
+                for file_name in set_of_dependencies:
+                    with open(file_name, "rb") as f:
+                        bytes = f.read()
+                        readable_hash = hashlib.md5(bytes).hexdigest()
+                        files_and_hashes[file_name] = readable_hash
+
+                LOGGER.info('File hashes: %s', files_and_hashes)
+
+                with RemoteAnalayzerClient(args.host, args.port) as client:
+                    try:
+                        missing_files = client.check_uploaded_files(json.dumps(files_and_hashes))
+                    except InvalidOperation as e:
+                        logger.error('InvalidOperation: %r' % e)
+
+                missing_files = json.loads(missing_files)
+
+                LOGGER.info(set_of_dependencies)
+                LOGGER.info(missing_files)
+
+                skipped_file_list = list(set(set_of_dependencies) - set(missing_files))
+
+                LOGGER.info(skipped_file_list)
+
+                set_of_dependencies = json.loads(missing_files)
+
+                LOGGER.info('Already uploaded files: %s' % set_of_dependencies)
 
                 with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
                     with zipfile.ZipFile(zip_file.name, 'a') as archive:
@@ -122,11 +172,11 @@ def analyze(args):
                             except KeyError:
                                 archive.write(f, archive_path)
                             else:
-                                LOGGER.debug("'%s' is already in the ZIP file, won't add it "
-                                            "again!", f)
+                                LOGGER.debug('%s is already in the ZIP file, skip it!', f)
 
-                            archive.writestr('sources-root/build_command', build_commands[file_path])
-                            archive.writestr('sources-root/file_path', file_path)
+                        archive.writestr('sources-root/build_command', build_commands[file_path])
+                        archive.writestr('sources-root/file_path', file_path)
+                        archive.writestr('sources-root/skipped_file_list', json.dumps(skipped_file_list))
 
                     LOGGER.debug('Created temporary zip file %s' % zip_file.name)
 
@@ -184,7 +234,7 @@ def get_results(args):
                         LOGGER.info(
                             'Stored the results of analysis %s', args.id)
                     except Exception:
-                        LOGGER.error("Failed to store received ZIP.")
+                        LOGGER.error('Failed to store received ZIP.')
 
             except InvalidOperation as e:
                 LOGGER.error('InvalidOperation: %r' % e)
