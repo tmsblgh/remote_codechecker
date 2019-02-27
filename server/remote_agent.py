@@ -75,8 +75,6 @@ class RemoteAnalyzeHandler:
             if REDIS_DATABASE.get(hash_json[file_path]) is None:
                 missing_files[file_path] = hash_json[file_path]
 
-        LOGGER.info(missing_files)
-
         return json.dumps(missing_files)
 
     def analyze(self, analyze_id, zip_file):

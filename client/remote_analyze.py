@@ -145,40 +145,47 @@ def analyze(args):
 
                 with RemoteAnalayzerClient(args.host, args.port) as client:
                     try:
-                        missing_files = client.check_uploaded_files(json.dumps(files_and_hashes))
+                        missing_files = client.check_uploaded_files(
+                            json.dumps(files_and_hashes))
                     except InvalidOperation as e:
                         logger.error('InvalidOperation: %r' % e)
 
-                missing_files = json.loads(missing_files)
+                if missing_files == '{}':
+                    missing_files = {}
+                else:
+                    missing_files = json.loads(missing_files)
 
-                LOGGER.info(set_of_dependencies)
-                LOGGER.info(missing_files)
+                LOGGER.info('Missing files: %s' % missing_files)
 
-                skipped_file_list = list(set(set_of_dependencies) - set(missing_files))
+                skipped_file_list = dict(
+                    set(files_and_hashes.items()) - set(missing_files.items()))
 
-                LOGGER.info(skipped_file_list)
-
-                set_of_dependencies = json.loads(missing_files)
-
-                LOGGER.info('Already uploaded files: %s' % set_of_dependencies)
+                LOGGER.info('Already uploaded files: %s' % skipped_file_list)
 
                 with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
                     with zipfile.ZipFile(zip_file.name, 'a') as archive:
-                        for f in set_of_dependencies:
-                            archive_path = os.path.join('sources-root', f.lstrip(os.sep))
+                        if missing_files is not None:
+                            for f in missing_files:
+                                LOGGER.info(f)
+                                archive_path = os.path.join(
+                                    'sources-root', f.lstrip(os.sep))
 
-                            try:
-                                archive.getinfo(archive_path)
-                            except KeyError:
-                                archive.write(f, archive_path)
-                            else:
-                                LOGGER.debug('%s is already in the ZIP file, skip it!', f)
+                                try:
+                                    archive.getinfo(archive_path)
+                                except KeyError:
+                                    archive.write(f, archive_path)
+                                else:
+                                    LOGGER.debug(
+                                        '%s is already in the ZIP file, skip it!', f)
 
-                        archive.writestr('sources-root/build_command', build_commands[file_path])
+                        archive.writestr(
+                            'sources-root/build_command', build_commands[file_path])
                         archive.writestr('sources-root/file_path', file_path)
-                        archive.writestr('sources-root/skipped_file_list', json.dumps(skipped_file_list))
+                        archive.writestr(
+                            'sources-root/skipped_file_list', json.dumps(skipped_file_list))
 
-                    LOGGER.debug('Created temporary zip file %s' % zip_file.name)
+                    LOGGER.debug('Created temporary zip file %s' %
+                                 zip_file.name)
 
                     with RemoteAnalayzerClient(args.host, args.port) as client:
                         try:
@@ -192,7 +199,8 @@ def analyze(args):
                             file_content = source_file.read()
 
                             try:
-                                response = client.analyze(analyzeId, file_content)
+                                response = client.analyze(
+                                    analyzeId, file_content)
                             except InvalidOperation as e:
                                 LOGGER.error('InvalidOperation: %r' % e)
 
