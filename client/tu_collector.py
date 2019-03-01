@@ -226,7 +226,15 @@ def add_sources_to_zip(zip_file, files):
                               "again!", f)
 
 
-def zip_tu_files(zip_file, compilation_database, write_mode='w'):
+def serialize(obj):
+    """JSON serializer for objects not serializable by default json code"""
+    
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
+
+
+def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mode='w'):
     """
     Collects all files to a zip file which are required for the compilation of
     the translation units described by the given compilation database.
@@ -259,6 +267,11 @@ def zip_tu_files(zip_file, compilation_database, write_mode='w'):
         if err:
             error_messages += buildaction['file'] + '\n' \
                 + '-' * len(buildaction['file']) + '\n' + err + '\n'
+        
+        if dependency_list:
+            with open(dependency_list,'w') as dependencies:
+                json.dumps(tu_files, dependencies, default=serialize)
+            sys.exit(0)
 
     if write_mode == 'a' and os.path.isfile(zip_file):
         with zipfile.ZipFile(zip_file) as archive:
@@ -301,13 +314,23 @@ used to generate a log file on the fly.""")
                           help="Use an already existing JSON compilation "
                                "command database file specified at this path.")
 
-    parser.add_argument('-z', '--zip', dest='zip', type=str, required=True,
+
+    output = parser.add_argument_group(
+        "output arguments",
+        """
+Specify the output""")
+    output = output.add_mutually_exclusive_group(required=True)
+    output.add_argument('-z', '--zip', dest='zip', type=str,
                         help="Output ZIP file.")
+    output.add_argument('-ld', '--list-dependecies', dest='list_dependencies',
+                        type=str, help="Output list of dependecies.")
+
     parser.add_argument('-f', '--filter', dest='filter',
                         type=str, required=False,
                         help="This flag restricts the collection on the build "
                              "actions of which the compiled source file "
                              "matches this path. E.g.: /path/to/*/files")
+
 
     args = parser.parse_args()
 
@@ -337,7 +360,7 @@ used to generate a log file on the fly.""")
             'command': args.command,
             'directory': os.getcwd()}]
 
-    zip_tu_files(args.zip, compilation_db)
+    zip_tu_files(args.zip, compilation_db, args.list_dependencies)
 
 
 if __name__ == "__main__":
