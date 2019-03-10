@@ -141,31 +141,33 @@ def analyze(args):
                         readable_hash = hashlib.md5(bytes).hexdigest()
                         files_and_hashes[file_name] = readable_hash
 
-                LOGGER.info('File hashes: %s', files_and_hashes)
+                LOGGER.debug('File hashes: %s', files_and_hashes)
 
                 with RemoteAnalayzerClient(args.host, args.port) as client:
                     try:
-                        missing_files = client.check_uploaded_files(
-                            json.dumps(files_and_hashes))
+                        list_of_missing_files = client.check_uploaded_files(files_and_hashes.values())
                     except InvalidOperation as e:
                         logger.error('InvalidOperation: %r' % e)
 
-                if missing_files == '{}':
-                    missing_files = {}
-                else:
-                    missing_files = json.loads(missing_files)
+                LOGGER.debug('Missing files: %s' % list_of_missing_files)
 
-                LOGGER.info('Missing files: %s' % missing_files)
+                files_to_archive = {}
+                skipped_file_list = {}
+                
+                for file in files_and_hashes:
+                    hash = files_and_hashes[file]
+                    if hash not in list_of_missing_files:
+                        skipped_file_list[file] = hash
+                    else:
+                        files_to_archive[file] = hash
 
-                skipped_file_list = dict(
-                    set(files_and_hashes.items()) - set(missing_files.items()))
-
-                LOGGER.info('Already uploaded files: %s' % skipped_file_list)
+                LOGGER.info('Files need to upload: \n%s' % files_to_archive)
+                LOGGER.info('Files already uploaded: \n%s' % skipped_file_list)
 
                 with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
                     with zipfile.ZipFile(zip_file.name, 'a') as archive:
-                        if missing_files is not None:
-                            for f in missing_files:
+                        if files_to_archive is not None:
+                            for f in files_to_archive:
                                 LOGGER.info(f)
                                 archive_path = os.path.join(
                                     'sources-root', f.lstrip(os.sep))

@@ -69,13 +69,12 @@ class RemoteAnalyzeHandler:
     def check_uploaded_files(self, file_hashes):
         LOGGER.info('Check missing files')
 
-        missing_files = {}
-        hash_json = json.loads(file_hashes)
-        for file_path in hash_json:
-            if REDIS_DATABASE.get(hash_json[file_path]) is None:
-                missing_files[file_path] = hash_json[file_path]
+        missing_files = []
+        for hash in file_hashes:
+            if REDIS_DATABASE.get(hash) is None:
+                missing_files.append(hash)
 
-        return json.dumps(missing_files)
+        return missing_files
 
     def analyze(self, analyze_id, zip_file):
         LOGGER.info('Store new part sources for analysis %s', analyze_id)
