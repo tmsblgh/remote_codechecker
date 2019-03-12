@@ -2,7 +2,6 @@
 
 import os
 import sys
-sys.path.append('../gen-py')
 import argparse
 import subprocess
 import zipfile
@@ -23,6 +22,8 @@ from thrift import Thrift
 from thrift.transport import TSocket
 from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
+
+import tu_collector
 
 LOGGER = logging.getLogger('CLIENT - ANALYZE')
 LOGGER.setLevel(logging.INFO)
@@ -83,130 +84,144 @@ def analyze(args):
     try:
         build_commands = {}
 
-        if args.build_command:
-            command = args.build_command
-            for part in command.split(' '):
-                if part.endswith('.cpp'):
-                    file_path = part
-                    break
+        with tempfile.NamedTemporaryFile() as compilation_database:
+            if args.build_command:
+                command = ["intercept-build"]
+                command.append("--cdb")
+                command.append("%s" % compilation_database.name)
+                command.append("sh -c \"")
+                command.append("%s" % args.build_command)
+                command.append("\"")
 
-            absolute_file_path = os.path.abspath(file_path)
-            modified_command = command.replace(file_path, absolute_file_path)
-            file_path = absolute_file_path
-            build_commands[file_path] = modified_command
-        else:
-            with open(args.compilation_database) as json_file:
+                LOGGER.debug(' '.join(command))
+
+                process = subprocess.Popen(' '.join(command),
+                                           stdin=subprocess.PIPE,
+                                           stdout=subprocess.PIPE,
+                                           stderr=subprocess.PIPE,
+                                           shell=True)
+
+                # not work without shell=True ...
+                # same as CC - build_manager.py:33
+
+                stdout, stderr = process.communicate()
+                returncode = process.wait()
+
+            cdb = compilation_database.name if args.build_command else args.compilation_database
+
+            with open(cdb) as json_file:
                 compilation_database = json.load(json_file)
+                LOGGER.info(compilation_database)
                 for item in compilation_database:
-                    command = item['command']
+                    command = ' '.join(item['arguments'])
                     directory = item['directory']
                     file_name = item['file']
 
-                    file_path = directory + file_name
+                    file_path = os.path.join(directory, file_name)
 
                     modified_command = command.replace(file_name, file_path)
                     build_commands[file_path] = modified_command
 
-        LOGGER.debug('Build commands: %s', build_commands)
+        LOGGER.info('Build commands: %s', build_commands)
 
         analyzeId = None
 
         for file_path in build_commands:
             with tempfile.NamedTemporaryFile() as list_of_dependecies:
-                command = ["python2", "tu_collector.py"]
+                command = ["python2", tu_collector.__file__]
                 command.append("-b")
                 command.append("%s" % build_commands[file_path])
                 command.append("-ld")
                 command.append("%s" % list_of_dependecies.name)
 
-            process = subprocess.Popen(command,
-                                       stdin=subprocess.PIPE,
-                                       stdout=subprocess.PIPE,
-                                       stderr=subprocess.PIPE)
+                process = subprocess.Popen(command,
+                                        stdin=subprocess.PIPE,
+                                        stdout=subprocess.PIPE,
+                                        stderr=subprocess.PIPE)
 
-            stdout, stderr = process.communicate()
-            returncode = process.wait()
+                stdout, stderr = process.communicate()
+                returncode = process.wait()
 
-            LOGGER.debug('List temp file %s' % list_of_dependecies.name)
+                LOGGER.debug('List temp file %s' % list_of_dependecies.name)
 
-            files_and_hashes = {}
+                files_and_hashes = {}
 
-            with open(list_of_dependecies.name) as dependencies:
-                set_of_dependencies = json.loads(dependencies.read())
-                LOGGER.debug(set_of_dependencies)
+                with open(list_of_dependecies.name) as dependencies:
+                    set_of_dependencies = json.loads(dependencies.read())
+                    LOGGER.info(set_of_dependencies)
 
-                for file_name in set_of_dependencies:
-                    with open(file_name, "rb") as f:
-                        bytes = f.read()
-                        readable_hash = hashlib.md5(bytes).hexdigest()
-                        files_and_hashes[file_name] = readable_hash
+                    for file_name in set_of_dependencies:
+                        with open(file_name, "rb") as f:
+                            bytes = f.read()
+                            readable_hash = hashlib.md5(bytes).hexdigest()
+                            files_and_hashes[file_name] = readable_hash
 
-                LOGGER.debug('File hashes: %s', files_and_hashes)
-
-                with RemoteAnalayzerClient(args.host, args.port) as client:
-                    try:
-                        list_of_missing_files = client.check_uploaded_files(files_and_hashes.values())
-                    except InvalidOperation as e:
-                        logger.error('InvalidOperation: %r' % e)
-
-                LOGGER.debug('Missing files: %s' % list_of_missing_files)
-
-                files_to_archive = {}
-                skipped_file_list = {}
-                
-                for file in files_and_hashes:
-                    hash = files_and_hashes[file]
-                    if hash not in list_of_missing_files:
-                        skipped_file_list[file] = hash
-                    else:
-                        files_to_archive[file] = hash
-
-                LOGGER.info('Files need to upload: \n%s' % files_to_archive)
-                LOGGER.info('Files already uploaded: \n%s' % skipped_file_list)
-
-                with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
-                    with zipfile.ZipFile(zip_file.name, 'a') as archive:
-                        if files_to_archive is not None:
-                            for f in files_to_archive:
-                                LOGGER.info(f)
-                                archive_path = os.path.join(
-                                    'sources-root', f.lstrip(os.sep))
-
-                                try:
-                                    archive.getinfo(archive_path)
-                                except KeyError:
-                                    archive.write(f, archive_path)
-                                else:
-                                    LOGGER.debug(
-                                        '%s is already in the ZIP file, skip it!', f)
-
-                        archive.writestr(
-                            'sources-root/build_command', build_commands[file_path])
-                        archive.writestr('sources-root/file_path', file_path)
-                        archive.writestr(
-                            'sources-root/skipped_file_list', json.dumps(skipped_file_list))
-
-                    LOGGER.debug('Created temporary zip file %s' %
-                                 zip_file.name)
+                    LOGGER.debug('File hashes: %s', files_and_hashes)
 
                     with RemoteAnalayzerClient(args.host, args.port) as client:
                         try:
-                            if analyzeId is None:
-                                analyzeId = client.getId()
-                                LOGGER.info('Received id %s', analyzeId)
+                            list_of_missing_files = client.check_uploaded_files(files_and_hashes.values())
                         except InvalidOperation as e:
-                            LOGGER.error('InvalidOperation: %r' % e)
+                            logger.error('InvalidOperation: %r' % e)
 
-                        with open(zip_file.name, 'rb') as source_file:
-                            file_content = source_file.read()
+                    LOGGER.debug('Missing files: %s' % list_of_missing_files)
 
+                    files_to_archive = {}
+                    skipped_file_list = {}
+
+                    for file in files_and_hashes:
+                        hash = files_and_hashes[file]
+                        if hash not in list_of_missing_files:
+                            skipped_file_list[file] = hash
+                        else:
+                            files_to_archive[file] = hash
+
+                    LOGGER.info('Files need to upload: \n%s' % files_to_archive)
+                    LOGGER.info('Files already uploaded: \n%s' % skipped_file_list)
+
+                    with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
+                        with zipfile.ZipFile(zip_file.name, 'a') as archive:
+                            if files_to_archive is not None:
+                                for f in files_to_archive:
+                                    LOGGER.info(f)
+                                    archive_path = os.path.join(
+                                        'sources-root', f.lstrip(os.sep))
+
+                                    try:
+                                        archive.getinfo(archive_path)
+                                    except KeyError:
+                                        archive.write(f, archive_path)
+                                    else:
+                                        LOGGER.debug(
+                                            '%s is already in the ZIP file, skip it!', f)
+
+                            archive.writestr(
+                                'sources-root/build_command', build_commands[file_path])
+                            archive.writestr('sources-root/file_path', file_path)
+                            archive.writestr(
+                                'sources-root/skipped_file_list', json.dumps(skipped_file_list))
+
+                        LOGGER.debug('Created temporary zip file %s' %
+                                    zip_file.name)
+
+                        with RemoteAnalayzerClient(args.host, args.port) as client:
                             try:
-                                response = client.analyze(
-                                    analyzeId, file_content)
+                                if analyzeId is None:
+                                    analyzeId = client.getId()
+                                    LOGGER.info('Received id %s', analyzeId)
                             except InvalidOperation as e:
                                 LOGGER.error('InvalidOperation: %r' % e)
 
-                        LOGGER.info('Stored sources for id %s', analyzeId)
+                            with open(zip_file.name, 'rb') as source_file:
+                                file_content = source_file.read()
+
+                                try:
+                                    response = client.analyze(
+                                        analyzeId, file_content)
+                                except InvalidOperation as e:
+                                    LOGGER.error('InvalidOperation: %r' % e)
+
+                            LOGGER.info('Stored sources for id %s', analyzeId)
 
     except Thrift.TException as thrift_exception:
         LOGGER.error('%s' % (thrift_exception.message))

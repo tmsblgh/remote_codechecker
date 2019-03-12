@@ -23,7 +23,6 @@ from thrift.transport import TTransport
 from thrift.protocol import TBinaryProtocol
 from thrift.server import TServer
 
-sys.path.append('../gen-py')
 from remote_analyze_api import RemoteAnalyze
 from remote_analyze_api.ttypes import InvalidOperation
 
