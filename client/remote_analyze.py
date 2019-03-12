@@ -50,25 +50,6 @@ class RemoteAnalayzerClient(AbstractContextManager):
         self.transport.close()
 
 
-def remove_files_from_archive(original_zip, files_to_remove):
-    LOGGER.info('Remove files from the archive. [%s]' % files_to_remove)
-    LOGGER.info('Old zip %s' % original_zip)
-    with zipfile.ZipFile(original_zip, 'r') as zipf:
-        LOGGER.info(zipf.namelist())
-
-    with zipfile.ZipFile(original_zip, 'a') as zipf:
-        with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
-            LOGGER.info('List %s' % zipf.namelist())
-            for item in zipf.namelist():
-                LOGGER.info('File %s' % item.filename)
-                buffer = zipf.read(item.filename)
-                if item.filename in files_to_remove:
-                    zip_file.writestr(item, buffer)
-
-            LOGGER.info('New zip %s' % zip_file.name)
-            return zip_file.name
-
-
 def analyze(args):
     """
     This method tries to collect files based on the build command for the
@@ -84,36 +65,27 @@ def analyze(args):
     try:
         build_commands = {}
 
-        with tempfile.NamedTemporaryFile() as compilation_database:
-            if args.build_command:
-                command = ["intercept-build"]
-                command.append("--cdb")
-                command.append("%s" % compilation_database.name)
-                command.append("sh -c \"")
-                command.append("%s" % args.build_command)
-                command.append("\"")
+        if args.build_command:
+            with tempfile.NamedTemporaryFile() as compilation_database:
+                if args.build_command:
+                    command = args.build_command
+                    for part in command.split(' '):
+                        if part.endswith('.cpp') or part.endswith('.c'):
+                            file_path = part
+                            break
 
-                LOGGER.debug(' '.join(command))
-
-                process = subprocess.Popen(' '.join(command),
-                                           stdin=subprocess.PIPE,
-                                           stdout=subprocess.PIPE,
-                                           stderr=subprocess.PIPE,
-                                           shell=True)
-
-                # not work without shell=True ...
-                # same as CC - build_manager.py:33
-
-                stdout, stderr = process.communicate()
-                returncode = process.wait()
-
-            cdb = compilation_database.name if args.build_command else args.compilation_database
-
-            with open(cdb) as json_file:
+                    file_path = os.path.abspath(file_path)
+                    modified_command = command.replace(file_path, file_path)
+                    build_commands[file_path] = modified_command
+        else:
+            with open(args.compilation_database) as json_file:
                 compilation_database = json.load(json_file)
                 LOGGER.info(compilation_database)
                 for item in compilation_database:
-                    command = ' '.join(item['arguments'])
+                    if 'arguments' in item:
+                        command = ' '.join(item['arguments'])
+                    else:
+                        command = item['command']
                     directory = item['directory']
                     file_name = item['file']
 

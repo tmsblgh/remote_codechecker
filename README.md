@@ -41,6 +41,18 @@ docker-compose up
 python3 remote_analyze.py analyze -cdb ../test/compile_commands.json
 ```
 
+## Usage
+
+```sh
+# Start an analyze with build command
+python3 remote_analyze.py analyze -b "g++ -c ../test/call_and_message.cpp -Wno-all -Wno-extra"
+
+# Start an analyze with compile_commands.json
+python3 remote_analyze.py analyze -cdb ../test/compile_commands.json
+
+# Note: You can create compile_commands.json with the help of CodeChecker log or intercept-build.
+```
+
 ## Notes
 
 Files from other repositories:
