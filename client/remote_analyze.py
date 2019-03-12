@@ -120,36 +120,37 @@ def analyze(args):
 
                 with open(list_of_dependecies.name) as dependencies:
                     set_of_dependencies = json.loads(dependencies.read())
-                    LOGGER.info(set_of_dependencies)
 
-                    for file_name in set_of_dependencies:
-                        with open(file_name, "rb") as f:
-                            bytes = f.read()
-                            readable_hash = hashlib.md5(bytes).hexdigest()
-                            files_and_hashes[file_name] = readable_hash
+                    if args.use_cache:
+                        for file_name in set_of_dependencies:
+                            with open(file_name, "rb") as f:
+                                bytes = f.read()
+                                readable_hash = hashlib.md5(bytes).hexdigest()
+                                files_and_hashes[readable_hash] = file_name
 
-                    LOGGER.debug('File hashes: %s', files_and_hashes)
+                        LOGGER.debug('File hashes: %s', files_and_hashes)
 
-                    with RemoteAnalayzerClient(args.host, args.port) as client:
-                        try:
-                            list_of_missing_files = client.check_uploaded_files(files_and_hashes.values())
-                        except InvalidOperation as e:
-                            logger.error('InvalidOperation: %r' % e)
+                        with RemoteAnalayzerClient(args.host, args.port) as client:
+                            try:
+                                missing_files = client.check_uploaded_files(files_and_hashes.keys())
+                            except InvalidOperation as e:
+                                LOGGER.error('InvalidOperation: %r' % e)
 
-                    LOGGER.debug('Missing files: %s' % list_of_missing_files)
+                        LOGGER.debug('Missing files: %s' % missing_files)
 
-                    files_to_archive = {}
-                    skipped_file_list = {}
+                        files_to_archive = {}
+                        cached_files = {}
 
-                    for file in files_and_hashes:
-                        hash = files_and_hashes[file]
-                        if hash not in list_of_missing_files:
-                            skipped_file_list[file] = hash
-                        else:
-                            files_to_archive[file] = hash
+                        for hash in files_and_hashes:
+                            if hash not in missing_files:
+                                cached_files[hash] = files_and_hashes[hash]
+                            else:
+                                files_to_archive[hash] = files_and_hashes[hash]
 
-                    LOGGER.info('Files need to upload: \n%s' % files_to_archive)
-                    LOGGER.info('Files already uploaded: \n%s' % skipped_file_list)
+                        LOGGER.info('Files need to upload: \n%s' % files_to_archive)
+                        LOGGER.info('Files already uploaded: \n%s' % cached_files)
+                    else:
+                        files_to_archive = set_of_dependencies
 
                     with tempfile.NamedTemporaryFile(suffix='.zip') as zip_file:
                         with zipfile.ZipFile(zip_file.name, 'a') as archive:
@@ -171,7 +172,7 @@ def analyze(args):
                                 'sources-root/build_command', build_commands[file_path])
                             archive.writestr('sources-root/file_path', file_path)
                             archive.writestr(
-                                'sources-root/skipped_file_list', json.dumps(skipped_file_list))
+                                'sources-root/cached_files', json.dumps(cached_files))
 
                         LOGGER.debug('Created temporary zip file %s' %
                                     zip_file.name)
@@ -248,6 +249,8 @@ def main():
 
     parser.add_argument('--port', type=str,
                         dest='port', default='9090', help="...")
+
+    parser.add_argument('--no-cache', dest='use_cache', default=True, action='store_false')
 
     subparsers = parser.add_subparsers(help='sub-command help')
 
