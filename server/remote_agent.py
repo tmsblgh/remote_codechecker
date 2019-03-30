@@ -120,7 +120,7 @@ class RemoteAnalyzeHandler:
     def getStatus(self, analyze_id):
         LOG.info("Get status of analysis %s", analyze_id)
 
-        analysis_state = REDIS_DATABASE.hget(analyze_id, "state")
+        analysis_state = REDIS_DATABASE.hget(analyze_id, "state").decode('utf-8')
 
         if analysis_state is None:
             return "Not found."
@@ -128,7 +128,7 @@ class RemoteAnalyzeHandler:
         return analysis_state
 
     def getResults(self, analyze_id):
-        analysis_state = REDIS_DATABASE.hget(analyze_id, "state")
+        analysis_state = REDIS_DATABASE.hget(analyze_id, "state").decode('utf-8')
 
         if analysis_state == AnalyzeStatus.ANALYZE_COMPLETED.name:
             result_path = os.path.join(WORKSPACE, analyze_id, "output.zip")
@@ -158,9 +158,7 @@ if __name__ == "__main__":
 
     SERVER = TServer.TSimpleServer(PROCESSOR, TRANSPORT, T_FACTORY, P_FACTORY)
 
-    REDIS_DATABASE = redis.Redis(
-        host="redis", port=6379, db=0, charset="utf-8", decode_responses=True
-    )
+    REDIS_DATABASE = redis.Redis(host="redis", port=6379, db=0)
 
     LOG.info("Starting the server...")
     SERVER.serve()

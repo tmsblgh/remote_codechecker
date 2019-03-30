@@ -198,8 +198,7 @@ def analyze(args):
                                 file_content = source_file.read()
 
                                 try:
-                                    response = client.analyze(
-                                        analyzeId, file_content)
+                                    client.analyze(analyzeId, file_content)
                                 except InvalidOperation as e:
                                     LOG.error("InvalidOperation: %r" % e)
 
