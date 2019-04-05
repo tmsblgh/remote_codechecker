@@ -270,7 +270,7 @@ def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mod
         
         if dependency_list:
             with open(dependency_list,'w') as dependencies:
-                json.dumps(tu_files, dependencies, default=serialize)
+                dependencies.write(json.dumps(tu_files, default=serialize))
             sys.exit(0)
 
     if write_mode == 'a' and os.path.isfile(zip_file):
