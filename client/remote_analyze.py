@@ -59,150 +59,163 @@ def analyze(args):
 
     try:
         build_commands = {}
+        compilation_commands = []
 
+        # if args.build_command:
+        # with tempfile.NamedTemporaryFile() as compilation_database:
         if args.build_command:
-            with tempfile.NamedTemporaryFile() as compilation_database:
-                if args.build_command:
-                    command = args.build_command
-                    for part in command.split(" "):
-                        if part.endswith(".cpp") or part.endswith(".c"):
-                            file_path = part
-                            break
+            command = args.build_command
+            for part in command.split(" "):
+                if part.endswith(".cpp") or part.endswith(".c"):
+                    file_path = part
+                    break
 
-                    file_path = os.path.abspath(file_path)
-                    modified_command = command.replace(file_path, file_path)
-                    build_commands[file_path] = modified_command
+            file_path = os.path.abspath(file_path)
+            modified_command = command.replace(file_path, file_path)
+            build_commands[file_path] = modified_command
         else:
             with open(args.compilation_database) as json_file:
                 compilation_database = json.load(json_file)
                 LOG.debug(compilation_database)
                 for item in compilation_database:
-                    if "arguments" in item:
-                        command = " ".join(item["arguments"])
-                    else:
-                        command = item["command"]
-                    directory = item["directory"]
-                    file_name = item["file"]
+                    compilation_commands.append(item)
 
-                    file_path = os.path.join(directory, file_name)
-
-                    modified_command = command.replace(file_name, file_path)
-                    build_commands[file_path] = modified_command
-
-        LOG.debug("Build commands: %s", build_commands)
+        LOG.debug("Build commands: %s" % build_commands)
+        LOG.debug("Compilation commands: %s" % compilation_commands)
 
         analyzeId = None
 
-        for file_path in build_commands:
-            with tempfile.NamedTemporaryFile() as list_of_dependecies:
-                command = ["python2", tu_collector.__file__]
-                command.append("-b")
-                command.append("%s" % build_commands[file_path])
-                command.append("-ld")
-                command.append("%s" % list_of_dependecies.name)
+        for item in compilation_commands:
 
-                process = subprocess.Popen(
-                    command,
-                    stdin=subprocess.PIPE,
-                    stdout=subprocess.PIPE,
-                    stderr=subprocess.PIPE,
-                )
+            tmp = tempfile.NamedTemporaryFile()
 
-                stdout, stderr = process.communicate()
-                returncode = process.wait()
+            with open(tmp.name, 'w') as current_item:
+                current_item.write('[' + json.dumps(item) + ']')
 
-                LOG.debug("List temp file %s" % list_of_dependecies.name)
+            with open(tmp.name) as current_item:
+                with tempfile.NamedTemporaryFile() as list_of_dependecies:
 
-                files_and_hashes = {}
+                    command = ["python2", tu_collector.__file__]
+                    command.append("-l")
+                    command.append("%s" % current_item.name)
+                    command.append("-ld")
+                    command.append("%s" % list_of_dependecies.name)
 
-                with open(list_of_dependecies.name) as dependencies:
-                    set_of_dependencies = json.loads(dependencies.read())
+                    process = subprocess.Popen(
+                        command,
+                        stdin=subprocess.PIPE,
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
 
-                    if args.use_cache:
-                        for file_name in set_of_dependencies:
-                            with open(file_name, "rb") as f:
-                                file_in_bytes = f.read()
-                                readable_hash = hashlib.md5(
-                                    file_in_bytes).hexdigest()
-                                files_and_hashes[readable_hash] = file_name
+                    LOG.debug(command)
 
-                        LOG.debug("File hashes: %s", files_and_hashes)
+                    stdout, stderr = process.communicate()
+                    returncode = process.wait()
 
-                        with RemoteAnalayzerClient(args.host, args.port) as client:
-                            try:
-                                missing_files = client.check_uploaded_files(
-                                    files_and_hashes.keys()
-                                )
-                            except InvalidOperation as e:
-                                LOG.error("InvalidOperation: %r" % e)
+                    LOG.debug("List temp file %s" % list_of_dependecies.name)
 
-                        LOG.debug("Missing files: %s" % missing_files)
+                    files_and_hashes = {}
 
-                        files_to_archive = {}
-                        cached_files = {}
+                    with open(list_of_dependecies.name) as dependencies:
+                        set_of_dependencies = json.loads(dependencies.read())
 
-                        for hash in files_and_hashes:
-                            if hash not in missing_files:
-                                cached_files[hash] = files_and_hashes[hash]
-                            else:
-                                files_to_archive[hash] = files_and_hashes[hash]
+                        if args.use_cache:
+                            for file_name in set_of_dependencies:
+                                if os.path.exists(file_name):
+                                    with open(file_name, "rb") as f:
+                                        file_in_bytes = f.read()
+                                        readable_hash = hashlib.md5(
+                                            file_in_bytes).hexdigest()
+                                        files_and_hashes[readable_hash] = file_name
+                                else:
+                                    set_of_dependencies.remove(file_name)
 
-                        LOG.info("Files need to upload: \n%s" %
-                                 files_to_archive)
-                        LOG.info("Files already uploaded: \n%s" % cached_files)
-                    else:
-                        files_to_archive = set_of_dependencies
+                            LOG.debug("File hashes: %s" % files_and_hashes)
 
-                    with tempfile.NamedTemporaryFile(suffix=".zip") as zip_file:
-                        with zipfile.ZipFile(zip_file.name, "a") as archive:
-                            if files_to_archive is not None:
-                                for file in files_to_archive:
-                                    archive_path = os.path.join(
-                                        "sources-root",
-                                        files_to_archive[file].lstrip(os.sep),
-                                    )
-
-                                    try:
-                                        archive.getinfo(archive_path)
-                                    except KeyError:
-                                        archive.write(
-                                            files_to_archive[file], archive_path
-                                        )
-                                    else:
-                                        LOG.debug(
-                                            "%s is already in the ZIP file, skip it!", f
-                                        )
-
-                            archive.writestr(
-                                "sources-root/build_command", build_commands[file_path]
-                            )
-                            archive.writestr(
-                                "sources-root/file_path", file_path)
-                            archive.writestr(
-                                "sources-root/cached_files", json.dumps(
-                                    cached_files)
-                            )
-
-                        LOG.debug("Created temporary zip file %s" %
-                                  zip_file.name)
-
-                        with RemoteAnalayzerClient(args.host, args.port) as client:
-                            try:
-                                if analyzeId is None:
-                                    analyzeId = client.getId()
-                                    LOG.info("Received id %s", analyzeId)
-                            except InvalidOperation as e:
-                                LOG.error("InvalidOperation: %r" % e)
-
-                            with open(zip_file.name, "rb") as source_file:
-                                file_content = source_file.read()
-
+                            with RemoteAnalayzerClient(args.host, args.port) as client:
                                 try:
-                                    client.analyze(analyzeId, file_content)
+                                    missing_files = client.check_uploaded_files(
+                                        files_and_hashes.keys()
+                                    )
                                 except InvalidOperation as e:
                                     LOG.error("InvalidOperation: %r" % e)
 
-                            LOG.info("Stored sources for id %s", analyzeId)
+                            LOG.debug("Missing files: %s" % missing_files)
+
+                            files_to_archive = {}
+                            cached_files = {}
+
+                            for hash in files_and_hashes:
+                                if hash not in missing_files:
+                                    cached_files[hash] = files_and_hashes[hash]
+                                else:
+                                    files_to_archive[hash] = files_and_hashes[hash]
+
+                            LOG.debug("Files need to upload: \n%s" %
+                                     files_to_archive)
+                            LOG.debug("Files already uploaded: \n%s" %
+                                     cached_files)
+                        else:
+                            files_to_archive = set_of_dependencies
+
+                        with tempfile.NamedTemporaryFile(suffix=".zip") as zip_file:
+                            with zipfile.ZipFile(zip_file.name, "a") as archive:
+                                if files_to_archive is not None:
+                                    for file in files_to_archive:
+                                        archive_path = os.path.join(
+                                            "sources-root",
+                                            files_to_archive[file].lstrip(
+                                                os.sep),
+                                        )
+
+                                        try:
+                                            archive.getinfo(archive_path)
+                                        except KeyError:
+                                            archive.write(
+                                                files_to_archive[file], archive_path
+                                            )
+                                        else:
+                                            LOG.debug(
+                                                "%s is already in the ZIP file, skip it!" % f
+                                            )
+
+                                set_of_path = set()
+                                for dependency in set_of_dependencies:
+                                    set_of_path.add(os.path.dirname(dependency))
+
+                                archive.writestr(
+                                    "sources-root/paths_of_dependencies.json",  json.dumps(list(set_of_path)))
+
+                                archive.writestr(
+                                    "sources-root/compile_commands.json",  current_item.read())
+
+                                archive.writestr(
+                                    "sources-root/cached_files",  json.dumps(
+                                        cached_files)
+                                )
+
+                            LOG.debug("Created temporary zip file %s" %
+                                      zip_file.name)
+
+                            with RemoteAnalayzerClient(args.host, args.port) as client:
+                                try:
+                                    if analyzeId is None:
+                                        analyzeId = client.getId()
+                                        LOG.info("Received id %s" % analyzeId)
+                                except InvalidOperation as e:
+                                    LOG.error("InvalidOperation: %r" % e)
+
+                                with open(zip_file.name, "rb") as source_file:
+                                    file_content = source_file.read()
+
+                                    try:
+                                        client.analyze(analyzeId, file_content)
+                                    except InvalidOperation as e:
+                                        LOG.error("InvalidOperation: %r" % e)
+
+                                LOG.info("Stored sources for id %s" %
+                                         analyzeId)
 
     except Thrift.TException as thrift_exception:
         LOG.error("%s" % (thrift_exception.message))
@@ -217,7 +230,7 @@ def get_status(args):
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
                 response = client.getStatus(args.id)
-                LOG.info("Status of analysis: %s", response)
+                LOG.info("Status of analysis: %s" % response)
             except InvalidOperation as e:
                 LOG.error("InvalidOperation: %r" % e)
 
