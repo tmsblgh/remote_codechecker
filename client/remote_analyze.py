@@ -61,12 +61,11 @@ def analyze(args):
         build_commands = {}
         compilation_commands = []
 
-        # if args.build_command:
-        # with tempfile.NamedTemporaryFile() as compilation_database:
         if args.build_command:
+            supported_file_extensions = {".cpp", ".c"}
             command = args.build_command
             for part in command.split(" "):
-                if part.endswith(".cpp") or part.endswith(".c"):
+                if os.path.splitext(part)[1] in supported_file_extensions:
                     file_path = part
                     break
 
@@ -90,7 +89,7 @@ def analyze(args):
             tmp = tempfile.NamedTemporaryFile()
 
             with open(tmp.name, 'w') as current_item:
-                current_item.write('[' + json.dumps(item) + ']')
+                json.dump([item], current_item)
 
             with open(tmp.name) as current_item:
                 with tempfile.NamedTemporaryFile() as list_of_dependecies:
@@ -118,7 +117,7 @@ def analyze(args):
                     files_and_hashes = {}
 
                     with open(list_of_dependecies.name) as dependencies:
-                        set_of_dependencies = json.loads(dependencies.read())
+                        set_of_dependencies = json.load(dependencies)
 
                         if args.use_cache:
                             for file_name in set_of_dependencies:
