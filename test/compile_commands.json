@@ -1,6 +1,6 @@
 [
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "call_and_message.cpp",
@@ -11,7 +11,7 @@
         "file": "call_and_message.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "divide_zero.cpp",
@@ -23,7 +23,7 @@
         "file": "divide_zero.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "new_delete.cpp",
@@ -34,7 +34,7 @@
         "file": "new_delete.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "null_dereference.cpp",
@@ -45,7 +45,7 @@
         "file": "null_dereference.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "stack_address_escape.cpp",
@@ -56,7 +56,7 @@
         "file": "stack_address_escape.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "path_begin1.cpp",
@@ -67,7 +67,7 @@
         "file": "path_begin1.cpp"
     },
     {
-        "arguments": [
+        "command": [
             "g++",
             "-c",
             "path_begin2.cpp",

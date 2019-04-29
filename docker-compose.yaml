@@ -12,6 +12,8 @@ services:
       - REDIS_HOST=redis
     ports:
       - "9090:9090"
+    depends_on:
+      - "redis"
   redis:
     image: redis:3.0.1
     volumes:
@@ -20,6 +22,8 @@ services:
     image: codechecker
     volumes:
       - /private/tmp/workspace:/workspace
+    depends_on:
+      - "redis"
   redis_gui:
     image: marian/rebrow
     ports:
