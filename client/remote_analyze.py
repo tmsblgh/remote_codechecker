@@ -187,7 +187,7 @@ def analyze(args):
                                     "sources-root/paths_of_dependencies.json",  json.dumps(list(set_of_path)))
 
                                 archive.writestr(
-                                    "sources-root/compile_commands.json",  current_item.read())
+                                    "sources-root/compile_command.json",  current_item.read())
 
                                 archive.writestr(
                                     "sources-root/cached_files",  json.dumps(
