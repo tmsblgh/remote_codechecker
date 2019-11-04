@@ -31,10 +31,14 @@ docker build -t codechecker .
 git clone https://github.com/tmsblgh/remote_codechecker
 cd remote_codechecker
 
-# Build Docker container in it.
-docker build -t remote_codechecker .
+# Generate thrift APIs.
+make compile_thrift
+
+# Build Docker container.
+make build_docker
 
 # Build Redis container and start all previously created container for the service.
+# Note: use --scale analyzer={NUMBER_OF_ANALYZERS} for more analyzer container.
 docker-compose up
 
 # Start an analyze with the provided test resources
