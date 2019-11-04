@@ -23,9 +23,9 @@ RUN apt-get update && apt-get install -y software-properties-common wget \
       less \
       vim
 
-COPY remote_analyze_api.thrift remote_analyze_api.thrift
 COPY requirements_py/requirements.txt requirements_py/requirements.txt
 COPY server server/
+COPY gen-py/remote_analyze_api server/
 
 RUN pip3 install -r requirements_py/requirements.txt
 
