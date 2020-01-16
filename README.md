@@ -1,3 +1,14 @@
+# Thesis
+
+- [ ] Problem
+- [ ] Research
+  - [ ] Cloud
+  - [ ] Architecture
+  - [ ] File caching
+- [ ] Implementation
+- [ ] Measure
+- [ ] Future work
+
 # Remote CodeChecker
 
 Diagram about the concept
