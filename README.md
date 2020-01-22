@@ -1,13 +1,43 @@
 # Thesis
 
-- [ ] Problem
+- [ ] Problem statement
 - [ ] Research
   - [ ] Cloud
+  - [ ] Microservices
   - [ ] Architecture
+    - [ ] Components
+      - [ ] Client
+      - [ ] Server
+      - [ ] Database
   - [ ] File caching
 - [ ] Implementation
-- [ ] Measure
+  - [ ] Used technologies
+    - [ ] Reasons (CodeChecker)
+    - [ ] Thrift
+    - [ ] Docker
+  - [ ] Components
+    - [ ] Client
+    - [ ] Server
+    - [ ] Database
+  - [ ] Problems during the development
+- [ ] Measurements
+  - [ ] About the test environment
+  - [ ] Without file caching
+    - [ ] Small project
+    - [ ] Medium project
+    - [ ] Large project
+  - [ ] With file caching
+    - [ ] Small project
+    - [ ] Medium project
+    - [ ] Large project
+  - [ ] Summary
+    - [ ] Diagrams
 - [ ] Future work
+  - [ ] Authentication
+  - [ ] Authorization
+  - [ ] Sensitive code handling
+  - [ ] Swarm
+  - [ ] Dynamic scaling - Kubernetes
 
 # Remote CodeChecker
 
