@@ -1,43 +1,43 @@
 # Thesis
 
-- [ ] Problem statement
-- [ ] Research
+- [ ] Bevezetes 2-3
+  - [ ] Cel
+  - [ ] Eredmenyek
+- [ ] Cloud (altalanossagban) 10-15
   - [ ] Cloud
   - [ ] Microservices
-  - [ ] Architecture
-    - [ ] Components
-      - [ ] Client
-      - [ ] Server
-      - [ ] Database
-  - [ ] File caching
-- [ ] Implementation
-  - [ ] Used technologies
-    - [ ] Reasons (CodeChecker)
-    - [ ] Thrift
-    - [ ] Docker
-  - [ ] Components
-    - [ ] Client
-    - [ ] Server
-    - [ ] Database
-  - [ ] Problems during the development
-- [ ] Measurements
-  - [ ] About the test environment
-  - [ ] Without file caching
-    - [ ] Small project
-    - [ ] Medium project
-    - [ ] Large project
-  - [ ] With file caching
-    - [ ] Small project
-    - [ ] Medium project
-    - [ ] Large project
-  - [ ] Summary
-    - [ ] Diagrams
-- [ ] Future work
+- [ ] Nagyvonalakban az implementaciorol 5 (?)
+- [ ] Implementacio 15
+  - [ ] Kapcsolodas a CodeCheckerrel 1
+  - [ ] Komponensek
+    - [ ] Client 1
+      - [ ] TU Collector
+      - [ ] Mit csinal
+    - [ ] Server 4
+      - [ ] Mit csinal
+      - [ ] File caching
+        - [ ] Standard library, meg a sajat kodok is ritkan valtozik
+    - [ ] Adatbazis schema 2
+      - [ ] Miert REDIS 1
+      - [ ] Milyen adatokat tarolunk le
+      - [ ] Problemak (?)
+    - [ ] Meresek 5
+      - [ ] Tesztkornyezet 1
+      - [ ] Projektek
+        - [ ] TMUX (50-100)
+        - [ ] Xerces (400-800)
+        - [ ] LLVM (3000)
+      - [ ] Osszegzes 1
+        - [ ] Diagrammok
+- [ ] Osszefoglalas 5
   - [ ] Authentication
   - [ ] Authorization
   - [ ] Sensitive code handling
   - [ ] Swarm
   - [ ] Dynamic scaling - Kubernetes
+  - [ ] Konkluzio
+  
+Osszesen 38-44
 
 # Remote CodeChecker
 
