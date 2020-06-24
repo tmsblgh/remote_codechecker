@@ -5,15 +5,10 @@ Server for handling remote analyze requests with CodeChecker.
 """
 
 import argparse
-import json
 import logging
 import os
-import subprocess
-import sys
 import uuid
-import zipfile
 from enum import Enum
-from random import randint
 
 import redis
 from thrift.protocol import TBinaryProtocol
@@ -35,7 +30,7 @@ LOG.addHandler(ch)
 
 class AnalyzeStatus(Enum):
     """
-    Enums to represents state of analysis.
+    Enums to represents states of the analysis.
     """
 
     ID_PROVIDED = "ID_PROVIDED"
@@ -49,10 +44,13 @@ class RemoteAnalyzeHandler:
         self.log = {}
 
     def getId(self):
+        """
+        Privides a uuid for the analysation.
+        """
+
         LOG.info("Provide an id for the analysis")
 
-        # 8 chars should be unique enough
-        new_analyze_id = str(uuid.uuid4())[:8]
+        new_analyze_id = str(uuid.uuid4())
 
         REDIS_DATABASE.hset(new_analyze_id, "state",
                             AnalyzeStatus.ID_PROVIDED.name)
@@ -66,25 +64,33 @@ class RemoteAnalyzeHandler:
 
         return new_analyze_id
 
-    def check_uploaded_files(self, file_hashes):
+    def checkUploadedFiles(self, fileHashes):
+        """
+        Returns which files are not available from the database.
+        """
+
         LOG.info("Check missing files")
 
         missing_files = []
-        for hash in file_hashes:
-            if REDIS_DATABASE.get(hash) is None:
-                missing_files.append(hash)
+        for hash_value in fileHashes:
+            if REDIS_DATABASE.get(hash_value) is None:
+                missing_files.append(hash_value)
 
         return missing_files
 
-    def analyze(self, analyze_id, zip_file):
-        LOG.info("Store new part sources for analysis %s", analyze_id)
+    def analyze(self, analyzeId, zipFile):
+        """
+        Prepares the analysation step.
+        """
+
+        LOG.info("Store new part sources for analysis %s", analyzeId)
 
         file_name = "source"
         part_number = 1
         file_extension = ".zip"
 
         file_path = os.path.join(
-            WORKSPACE, analyze_id, file_name + "_" +
+            WORKSPACE, analyzeId, file_name + "_" +
             str(part_number) + file_extension
         )
 
@@ -92,7 +98,7 @@ class RemoteAnalyzeHandler:
             while True:
                 part_number += 1
                 new_file_path = os.path.join(WORKSPACE,
-                                             analyze_id,
+                                             analyzeId,
                                              file_name + "_" +
                                              str(part_number) + file_extension,
                                              )
@@ -104,34 +110,40 @@ class RemoteAnalyzeHandler:
 
         with open(file_path, "wb") as source:
             try:
-                source.write(zip_file)
+                source.write(zipFile)
             except Exception:
                 LOG.error("Failed to store received ZIP.")
 
-        REDIS_DATABASE.hset(analyze_id, "state", AnalyzeStatus.QUEUED.name)
-        REDIS_DATABASE.hincrby(analyze_id, "parts", 1)
+        REDIS_DATABASE.hset(analyzeId, "state", AnalyzeStatus.QUEUED.name)
+        REDIS_DATABASE.hincrby(analyzeId, "parts", 1)
         REDIS_DATABASE.rpush(
-            "ANALYSES_QUEUE", analyze_id + "-" + str(part_number))
+            "ANALYSES_QUEUE", analyzeId + "-" + str(part_number))
         LOG.info("Part %s is %s for analyze %s.",
                  part_number,
                  AnalyzeStatus.QUEUED.name,
-                 analyze_id)
+                 analyzeId)
 
-    def getStatus(self, analyze_id):
-        LOG.info("Get status of analysis %s", analyze_id)
+    def getStatus(self, analyzeId):
+        """
+        Returns the status of the analysation.
+        """
+        LOG.info("Get status of analysis %s", analyzeId)
 
-        analysis_state = REDIS_DATABASE.hget(analyze_id, "state").decode('utf-8')
+        analysis_state = REDIS_DATABASE.hget(analyzeId, "state").decode('utf-8')
 
         if analysis_state is None:
             return "Not found."
 
         return analysis_state
 
-    def getResults(self, analyze_id):
-        analysis_state = REDIS_DATABASE.hget(analyze_id, "state").decode('utf-8')
+    def getResults(self, analyzeId):
+        """
+        Returns the results of the analysation.
+        """
+        analysis_state = REDIS_DATABASE.hget(analyzeId, "state").decode('utf-8')
 
         if analysis_state == AnalyzeStatus.ANALYZE_COMPLETED.name:
-            result_path = os.path.join(WORKSPACE, analyze_id, "output.zip")
+            result_path = os.path.join(WORKSPACE, analyzeId, "output.zip")
 
             with open(result_path, "rb") as result:
                 response = result.read()
@@ -140,15 +152,15 @@ class RemoteAnalyzeHandler:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description=".....")
+    PARSER = argparse.ArgumentParser(description=".....")
 
-    parser.add_argument(
+    PARSER.add_argument(
         "-w", "--workspace", type=str, dest="workspace", default="workspace", help="..."
     )
 
-    args = parser.parse_args()
+    ARGUMENTS = PARSER.parse_args()
 
-    WORKSPACE = args.workspace
+    WORKSPACE = ARGUMENTS.workspace
 
     HANDLER = RemoteAnalyzeHandler()
     PROCESSOR = RemoteAnalyze.Processor(HANDLER)

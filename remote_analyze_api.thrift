@@ -5,8 +5,8 @@ exception InvalidOperation {
 
 service RemoteAnalyze {
   string getId()
-  list<string> check_uploaded_files(1:list<string> file_hashes)
-  void analyze(1:string analysisId, 2:binary zip_file)
+  list<string> checkUploadedFiles(1:list<string> fileHashes)
+  void analyze(1:string analysisId, 2:binary zipFile)
   string getStatus(1:string analysisId)
   binary getResults(1:string analysisId)
 }
