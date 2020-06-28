@@ -5,6 +5,7 @@ import hashlib
 import json
 import logging
 import os
+import sys
 import subprocess
 import tempfile
 import zipfile
@@ -16,7 +17,8 @@ from thrift.transport import TSocket, TTransport
 
 import tu_collector
 from remote_analyze_api import RemoteAnalyze
-from remote_analyze_api.ttypes import InvalidOperation
+from remote_analyze_api.ttypes import AnalysisNotFoundException
+from remote_analyze_api.ttypes import AnalysisNotCompletedException
 
 LOG = logging.getLogger("CLIENT")
 LOG.setLevel(logging.INFO)
@@ -136,13 +138,7 @@ def analyze(args):
                             LOG.debug("File hashes: %s", files_and_hashes)
 
                             with RemoteAnalayzerClient(args.host, args.port) as client:
-                                try:
-                                    missing_files = client.check_UploadedFiles(
-                                        files_and_hashes.keys()
-                                    )
-                                except InvalidOperation as exception:
-                                    LOG.error("InvalidOperation: %r" % exception)
-
+                                missing_files = client.checkUploadedFiles(files_and_hashes.keys())
                             LOG.debug("Missing files: %s", missing_files)
 
                             files_to_archive = {}
@@ -202,26 +198,18 @@ def analyze(args):
                                       zip_file.name)
 
                             with RemoteAnalayzerClient(args.host, args.port) as client:
-                                try:
-                                    if analyze_id is None:
-                                        analyze_id = client.getIdd()
-                                        LOG.info("Received id %s", analyze_id)
-                                except InvalidOperation as exception:
-                                    LOG.error("InvalidOperation: %r" % exception)
+                                analyze_id = client.getId()
+                                LOG.info("Received id %s", analyze_id)
 
                                 with open(zip_file.name, "rb") as source_file:
                                     file_content = source_file.read()
 
-                                    try:
-                                        client.analyze(analyze_id, file_content)
-                                    except InvalidOperation as exception:
-                                        LOG.error("InvalidOperation: %r", exception)
+                                    client.analyze(analyze_id, file_content)
 
                                 LOG.info("Stored sources for id %s", analyze_id)
 
     except Thrift.TException as thrift_exception:
-        LOG.error("%s", (thrift_exception.message))
-        LOG.error("%s", (thrift_exception.cause))
+        LOG.error("%s", thrift_exception.message)
 
 
 def get_status(args):
@@ -234,11 +222,12 @@ def get_status(args):
             try:
                 response = client.getStatus(args.id)
                 LOG.info("Status of analysis: %s", response)
-            except InvalidOperation as exception:
-                LOG.error("InvalidOperation: %r", exception)
+            except AnalysisNotFoundException:
+                LOG.warning("AnalysisNotFoundException.")
+                sys.exit(1)
 
     except Thrift.TException as thrift_exception:
-        LOG.error("%s", (thrift_exception.message))
+        LOG.error("%s", thrift_exception.message)
 
 
 def get_results(args):
@@ -250,15 +239,19 @@ def get_results(args):
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
                 response = client.getResults(args.id)
-                with open(args.id + ".zip", "wb") as source:
-                    try:
-                        source.write(response)
-                        LOG.info("Stored the results of analysis %s", args.id)
-                    except Exception:
-                        LOG.error("Failed to store received ZIP.")
+            except AnalysisNotFoundException:
+                LOG.warning("AnalysisNotFoundException.")
+                sys.exit(1)
+            except AnalysisNotCompletedException:
+                LOG.warning("AnalysisNotCompletedException.")
+                sys.exit(1)
 
-            except InvalidOperation as exception:
-                LOG.error("InvalidOperation: %r", exception)
+            with open(args.id + ".zip", "wb") as source:
+                try:
+                    source.write(response)
+                    LOG.info("Stored the results of analysis %s", args.id)
+                except Exception:
+                    LOG.error("Failed to store received ZIP.")
 
     except Thrift.TException as thrift_exception:
         LOG.error("%s", (thrift_exception.message))

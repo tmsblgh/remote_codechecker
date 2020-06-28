@@ -16,7 +16,8 @@ from thrift.server import TServer
 from thrift.transport import TSocket, TTransport
 
 from remote_analyze_api import RemoteAnalyze
-from remote_analyze_api.ttypes import InvalidOperation
+from remote_analyze_api.ttypes import AnalysisNotFoundException
+from remote_analyze_api.ttypes import AnalysisNotCompletedException
 
 LOG = logging.getLogger("SERVER")
 LOG.setLevel(logging.INFO)
@@ -117,7 +118,7 @@ class RemoteAnalyzeHandler:
         REDIS_DATABASE.hset(analyzeId, "state", AnalyzeStatus.QUEUED.name)
         REDIS_DATABASE.hincrby(analyzeId, "parts", 1)
         REDIS_DATABASE.rpush(
-            "ANALYSES_QUEUE", analyzeId + "-" + str(part_number))
+            "ANALYSES_QUEUE", analyzeId + "_" + str(part_number))
         LOG.info("Part %s is %s for analyze %s.",
                  part_number,
                  AnalyzeStatus.QUEUED.name,
@@ -129,26 +130,37 @@ class RemoteAnalyzeHandler:
         """
         LOG.info("Get status of analysis %s", analyzeId)
 
-        analysis_state = REDIS_DATABASE.hget(analyzeId, "state").decode('utf-8')
+        analysis_state = REDIS_DATABASE.hget(analyzeId, "state")
 
-        if analysis_state is None:
-            return "Not found."
+        if analysis_state is not None:
+            return analysis_state.decode('utf-8')
+        else:
+            LOG.info("Analysis with the provided id does not exist.")
+            raise AnalysisNotFoundException("Analysis with the provided id does not exist.")
 
-        return analysis_state
 
     def getResults(self, analyzeId):
         """
         Returns the results of the analysation.
         """
-        analysis_state = REDIS_DATABASE.hget(analyzeId, "state").decode('utf-8')
+        LOG.info("Get results of analysis %s", analyzeId)
 
-        if analysis_state == AnalyzeStatus.ANALYZE_COMPLETED.name:
-            result_path = os.path.join(WORKSPACE, analyzeId, "output.zip")
+        analysis_state = REDIS_DATABASE.hget(analyzeId, "state")
 
-            with open(result_path, "rb") as result:
-                response = result.read()
+        if analysis_state is not None:
+            if analysis_state.decode('utf-8') == AnalyzeStatus.ANALYZE_COMPLETED.name:
+                result_path = os.path.join(WORKSPACE, analyzeId, "output.zip")
 
-            return response
+                with open(result_path, "rb") as result:
+                    response = result.read()
+
+                return response
+            else:
+                LOG.info("Analysis with the provided id is not completed yet.")
+                raise AnalysisNotCompletedException("Analysis with the provided id is not completed yet.")
+        else:
+            LOG.info("Analysis with the provided id does not exist.")
+            raise AnalysisNotFoundException("Analysis with the provided id does not exist.")
 
 
 if __name__ == "__main__":
