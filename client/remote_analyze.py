@@ -5,11 +5,10 @@ import hashlib
 import json
 import logging
 import os
-import subprocess
 import sys
+import subprocess
 import tempfile
 import zipfile
-import zlib
 from contextlib import AbstractContextManager
 
 from thrift import Thrift
@@ -18,7 +17,8 @@ from thrift.transport import TSocket, TTransport
 
 import tu_collector
 from remote_analyze_api import RemoteAnalyze
-from remote_analyze_api.ttypes import InvalidOperation
+from remote_analyze_api.ttypes import AnalysisNotFoundException
+from remote_analyze_api.ttypes import AnalysisNotCompletedException
 
 LOG = logging.getLogger("CLIENT")
 LOG.setLevel(logging.INFO)
@@ -79,10 +79,10 @@ def analyze(args):
                 for item in compilation_database:
                     compilation_commands.append(item)
 
-        LOG.debug("Build commands: %s" % build_commands)
-        LOG.debug("Compilation commands: %s" % compilation_commands)
+        LOG.debug("Build commands: %s", build_commands)
+        LOG.debug("Compilation commands: %s", compilation_commands)
 
-        analyzeId = None
+        analyze_id = None
 
         for item in compilation_commands:
 
@@ -112,7 +112,12 @@ def analyze(args):
                     stdout, stderr = process.communicate()
                     returncode = process.wait()
 
-                    LOG.debug("List temp file %s" % list_of_dependecies.name)
+                    LOG.debug('Standard output: %s', stdout)
+
+                    if returncode != 0:
+                        LOG.error('Error output: %s', stderr)
+
+                    LOG.debug("List temp file %s", list_of_dependecies.name)
 
                     files_and_hashes = {}
 
@@ -122,39 +127,33 @@ def analyze(args):
                         if args.use_cache:
                             for file_name in set_of_dependencies:
                                 if os.path.exists(file_name):
-                                    with open(file_name, "rb") as f:
-                                        file_in_bytes = f.read()
+                                    with open(file_name, "rb") as file:
+                                        file_in_bytes = file.read()
                                         readable_hash = hashlib.md5(
                                             file_in_bytes).hexdigest()
                                         files_and_hashes[readable_hash] = file_name
                                 else:
                                     set_of_dependencies.remove(file_name)
 
-                            LOG.debug("File hashes: %s" % files_and_hashes)
+                            LOG.debug("File hashes: %s", files_and_hashes)
 
                             with RemoteAnalayzerClient(args.host, args.port) as client:
-                                try:
-                                    missing_files = client.check_uploaded_files(
-                                        files_and_hashes.keys()
-                                    )
-                                except InvalidOperation as e:
-                                    LOG.error("InvalidOperation: %r" % e)
-
-                            LOG.debug("Missing files: %s" % missing_files)
+                                missing_files = client.checkUploadedFiles(files_and_hashes.keys())
+                            LOG.debug("Missing files: %s", missing_files)
 
                             files_to_archive = {}
                             cached_files = {}
 
-                            for hash in files_and_hashes:
-                                if hash not in missing_files:
-                                    cached_files[hash] = files_and_hashes[hash]
+                            for hash_value in files_and_hashes:
+                                if hash_value not in missing_files:
+                                    cached_files[hash_value] = files_and_hashes[hash_value]
                                 else:
-                                    files_to_archive[hash] = files_and_hashes[hash]
+                                    files_to_archive[hash_value] = files_and_hashes[hash_value]
 
-                            LOG.debug("Files need to upload: \n%s" %
-                                     files_to_archive)
-                            LOG.debug("Files already uploaded: \n%s" %
-                                     cached_files)
+                            LOG.debug("Files need to upload: \n%s",
+                                      files_to_archive)
+                            LOG.debug("Files already uploaded: \n%s",
+                                      cached_files)
                         else:
                             files_to_archive = set_of_dependencies
 
@@ -176,7 +175,7 @@ def analyze(args):
                                             )
                                         else:
                                             LOG.debug(
-                                                "%s is already in the ZIP file, skip it!" % f
+                                                "%s is already in the ZIP file, skip it!", file
                                             )
 
                                 set_of_path = set()
@@ -184,40 +183,33 @@ def analyze(args):
                                     set_of_path.add(os.path.dirname(dependency))
 
                                 archive.writestr(
-                                    "sources-root/paths_of_dependencies.json",  json.dumps(list(set_of_path)))
+                                    "sources-root/paths_of_dependencies.json",
+                                    json.dumps(list(set_of_path)))
 
                                 archive.writestr(
-                                    "sources-root/compile_command.json",  current_item.read())
+                                    "sources-root/compile_command.json", current_item.read())
 
                                 archive.writestr(
-                                    "sources-root/cached_files",  json.dumps(
+                                    "sources-root/cached_files", json.dumps(
                                         cached_files)
                                 )
 
-                            LOG.debug("Created temporary zip file %s" %
+                            LOG.debug("Created temporary zip file %s",
                                       zip_file.name)
 
                             with RemoteAnalayzerClient(args.host, args.port) as client:
-                                try:
-                                    if analyzeId is None:
-                                        analyzeId = client.getId()
-                                        LOG.info("Received id %s" % analyzeId)
-                                except InvalidOperation as e:
-                                    LOG.error("InvalidOperation: %r" % e)
+                                analyze_id = client.getId()
+                                LOG.info("Received id %s", analyze_id)
 
                                 with open(zip_file.name, "rb") as source_file:
                                     file_content = source_file.read()
 
-                                    try:
-                                        client.analyze(analyzeId, file_content)
-                                    except InvalidOperation as e:
-                                        LOG.error("InvalidOperation: %r" % e)
+                                    client.analyze(analyze_id, file_content)
 
-                                LOG.info("Stored sources for id %s" %
-                                         analyzeId)
+                                LOG.info("Stored sources for id %s", analyze_id)
 
     except Thrift.TException as thrift_exception:
-        LOG.error("%s" % (thrift_exception.message))
+        LOG.error("%s", thrift_exception.message)
 
 
 def get_status(args):
@@ -229,12 +221,13 @@ def get_status(args):
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
                 response = client.getStatus(args.id)
-                LOG.info("Status of analysis: %s" % response)
-            except InvalidOperation as e:
-                LOG.error("InvalidOperation: %r" % e)
+                LOG.info("Status of analysis: %s", response)
+            except AnalysisNotFoundException:
+                LOG.warning("AnalysisNotFoundException.")
+                sys.exit(1)
 
     except Thrift.TException as thrift_exception:
-        LOG.error("%s" % (thrift_exception.message))
+        LOG.error("%s", thrift_exception.message)
 
 
 def get_results(args):
@@ -246,18 +239,22 @@ def get_results(args):
         with RemoteAnalayzerClient(args.host, args.port) as client:
             try:
                 response = client.getResults(args.id)
-                with open(args.id + ".zip", "wb") as source:
-                    try:
-                        source.write(response)
-                        LOG.info("Stored the results of analysis %s", args.id)
-                    except Exception:
-                        LOG.error("Failed to store received ZIP.")
+            except AnalysisNotFoundException:
+                LOG.warning("AnalysisNotFoundException.")
+                sys.exit(1)
+            except AnalysisNotCompletedException:
+                LOG.warning("AnalysisNotCompletedException.")
+                sys.exit(1)
 
-            except InvalidOperation as e:
-                LOG.error("InvalidOperation: %r" % e)
+            with open(args.id + ".zip", "wb") as source:
+                try:
+                    source.write(response)
+                    LOG.info("Stored the results of analysis %s", args.id)
+                except Exception:
+                    LOG.error("Failed to store received ZIP.")
 
     except Thrift.TException as thrift_exception:
-        LOG.error("%s" % (thrift_exception.message))
+        LOG.error("%s", (thrift_exception.message))
 
 
 def main():

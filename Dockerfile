@@ -25,8 +25,8 @@ RUN apt-get update && apt-get install -y software-properties-common wget \
 
 COPY requirements_py/requirements.txt requirements_py/requirements.txt
 COPY server server/
-COPY gen-py/remote_analyze_api server/
 
+RUN pip3 install wheel
 RUN pip3 install -r requirements_py/requirements.txt
 
 EXPOSE 9090
