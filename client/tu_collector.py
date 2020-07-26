@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -------------------------------------------------------------------------
 #                     The CodeChecker Infrastructure
 #   This file is distributed under the University of Illinois Open Source
@@ -10,12 +10,9 @@ translation unit. This script does this action based on a compilation database
 JSON file. The output of the script is a ZIP package with the collected
 sources.
 """
-from __future__ import print_function
-from __future__ import division
-from __future__ import absolute_import
+
 
 import argparse
-import codecs
 import fnmatch
 import json
 import logging
@@ -27,6 +24,17 @@ import string
 import subprocess
 import sys
 import zipfile
+from distutils.spawn import find_executable
+
+
+LOG = logging.getLogger('tu_collector')
+
+handler = logging.StreamHandler()
+formatter = logging.Formatter('[%(levelname)s] - %(message)s')
+handler.setFormatter(formatter)
+
+LOG.setLevel(logging.INFO)
+LOG.addHandler(handler)
 
 
 def __random_string(l):
@@ -49,6 +57,44 @@ def __get_toolchain_compiler(command):
             return os.path.join(tcpath.group('tcpath'),
                                 'bin',
                                 'g++' if is_cpp else 'gcc')
+
+
+def __determine_compiler(gcc_command):
+    """
+    This function determines the compiler from the given compilation command.
+    If the first part of the gcc_command is ccache invocation then the rest
+    should be a complete compilation command.
+
+    CCache may have three forms:
+    1. ccache g++ main.cpp
+    2. ccache main.cpp
+    3. /usr/lib/ccache/gcc main.cpp
+    In the first case this function drops "ccache" from gcc_command and returns
+    the next compiler name.
+    In the second case the compiler can be given by config files or an
+    environment variable. Currently we don't handle this version, and in this
+    case the compiler remanis "ccache" and the gcc_command is not changed.
+    The two cases are distinguished by checking whether the second parameter is
+    an executable or not.
+    In the third case gcc is a symlink to ccache, but we can handle
+    it as a normal compiler.
+
+    gcc_command -- A split build action as a list which may or may not start
+                   with ccache.
+
+    !!!WARNING!!! This function must always return an element of gcc_command
+    without modification (symlink resolve, absolute path conversion, etc.)
+    otherwise an exception is thrown at the caller side.
+
+    TODO: The second case could be handled if there was a way for querying the
+    used compiler from ccache. This can be configured for ccache in config
+    files or environment variables.
+    """
+    if gcc_command[0].endswith('ccache'):
+        if find_executable(gcc_command[1]) is not None:
+            return gcc_command[1]
+
+    return gcc_command[0]
 
 
 def __gather_dependencies(command, build_dir):
@@ -84,7 +130,7 @@ def __gather_dependencies(command, build_dir):
 
         return arg_vect
 
-    if isinstance(command, basestring):
+    if isinstance(command, str):
         command = shlex.split(command)
 
     # gcc and clang can generate makefile-style dependency list.
@@ -94,6 +140,13 @@ def __gather_dependencies(command, build_dir):
     # We need to first eliminate the output from the command.
     command = __eliminate_argument(command, '-o', True)
     command = __eliminate_argument(command, '--output', True)
+
+    # This flag can be given a .specs file which contains the config options of
+    # cc1, cc1plus, as, ld, etc. Sometimes this file is just a temporary during
+    # the compilation. However, if the file doesn't exist, this flag fails the
+    # compilation. Since this flag is not necessary for dependency generation,
+    # we can skip it.
+    command = __eliminate_argument(command, '-specs')
 
     # Remove potential dependency-file-generator options from the string
     # too. These arguments found in the logged build command would derail
@@ -111,7 +164,9 @@ def __gather_dependencies(command, build_dir):
     command = __eliminate_argument(command, '-MV')
 
     # Build out custom invocation for dependency generation.
-    command = [command[0], '-E', '-M', '-MT', '__dummy'] + command[1:]
+    compiler = __determine_compiler(command)
+    command = [compiler, '-E', '-M', '-MT', '__dummy'] \
+        + command[command.index(compiler) + 1:]
 
     # Remove empty arguments
     command = [i for i in command if i]
@@ -122,18 +177,21 @@ def __gather_dependencies(command, build_dir):
     # the gcc-toolchain are not added to the output.
     command = __eliminate_argument(command, '--gcc-toolchain')
 
+    LOG.debug("Command: %s", ' '.join(command))
+
     try:
-        output = subprocess.check_output(command,
-                                         bufsize=-1,
-                                         stderr=subprocess.STDOUT,
-                                         cwd=build_dir)
+        output = subprocess.check_output(
+            command,
+            bufsize=-1,
+            cwd=build_dir,
+            encoding="utf-8",
+            errors="replace")
         rc = 0
     except subprocess.CalledProcessError as ex:
         output, rc = ex.output, ex.returncode
     except OSError as oerr:
         output, rc = oerr.strerror, oerr.errno
 
-    output = codecs.decode(output, 'utf-8', 'replace')
     if rc == 0:
         # Parse 'Makefile' syntax dependency output.
         dependencies = output.replace('__dummy: ', '') \
@@ -149,8 +207,10 @@ def __gather_dependencies(command, build_dir):
 
 
 def __filter_compilation_db(compilation_db, filt):
-    return filter(lambda action: fnmatch.fnmatch(action['file'], filt),
-                  compilation_db)
+    return [
+        action for action in compilation_db if fnmatch.fnmatch(
+            action['file'],
+            filt)]
 
 
 def get_dependent_headers(command, build_dir, collect_toolchain=True):
@@ -169,9 +229,9 @@ def get_dependent_headers(command, build_dir, collect_toolchain=True):
                          are also collected in case this parameter is True.
     """
 
-    logging.debug("Generating dependent headers via compiler...")
+    LOG.debug("Generating dependent headers via compiler...")
 
-    if isinstance(command, basestring):
+    if isinstance(command, str):
         command = shlex.split(command)
 
     dependencies = set()
@@ -180,24 +240,23 @@ def get_dependent_headers(command, build_dir, collect_toolchain=True):
     try:
         dependencies |= set(__gather_dependencies(command, build_dir))
     except Exception as ex:
-        logging.debug("Couldn't create dependencies:")
-        logging.debug(str(ex))
+        LOG.error("Couldn't create dependencies: %s", str(ex))
         error += str(ex)
 
     toolchain_compiler = __get_toolchain_compiler(command)
 
     if collect_toolchain and toolchain_compiler:
-        logging.debug("Generating gcc-toolchain headers via toolchain "
+        LOG.debug("Generating gcc-toolchain headers via toolchain "
                       "compiler...")
         try:
             # Change the original compiler to the compiler from the toolchain.
             command[0] = toolchain_compiler
             dependencies |= set(__gather_dependencies(command, build_dir))
         except Exception as ex:
-            logging.debug("Couldn't create dependencies:")
-            logging.debug(str(ex))
+            LOG.error("Couldn't create dependencies: %s", str(ex))
             error += str(ex)
 
+    LOG.debug("Dependencies: %s", ', '.join(dependencies))
     return dependencies, error
 
 
@@ -222,19 +281,11 @@ def add_sources_to_zip(zip_file, files):
             except KeyError:
                 archive.write(f, archive_path, zipfile.ZIP_DEFLATED)
             else:
-                logging.debug("'%s' is already in the ZIP file, won't add it "
+                LOG.debug("'%s' is already in the ZIP file, won't add it "
                               "again!", f)
 
 
-def serialize(obj):
-    """JSON serializer for objects not serializable by default json code"""
-    
-    if isinstance(obj, set):
-        return list(obj)
-    raise TypeError
-
-
-def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mode='w'):
+def zip_tu_files(zip_file, compilation_database,  dependency_list=None, write_mode='w'):
     """
     Collects all files to a zip file which are required for the compilation of
     the translation units described by the given compilation database.
@@ -249,8 +300,8 @@ def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mod
                   files are appended to the existing zip file, in case of 'w'
                   the files are added to a clean zip file.
     """
-    if isinstance(compilation_database, basestring):
-        with open(compilation_database) as f:
+    if isinstance(compilation_database, str):
+        with open(compilation_database, encoding="utf-8", errors="ignore") as f:
             compilation_database = json.load(f)
 
     no_sources = 'no-sources'
@@ -270,7 +321,7 @@ def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mod
         
         if dependency_list:
             with open(dependency_list,'w') as dependencies:
-                dependencies.write(json.dumps(tu_files, default=serialize))
+                dependencies.write(json.dumps(tu_files, indent=2))
             sys.exit(0)
 
     if write_mode == 'a' and os.path.isfile(zip_file):
@@ -285,8 +336,17 @@ def zip_tu_files(zip_file, compilation_database, dependency_list=None, write_mod
     if error_messages:
         with zipfile.ZipFile(zip_file, write_mode) as archive:
             archive.writestr(no_sources, error_messages)
+    elif write_mode == 'w':
+        try:
+            os.remove(zip_file)
+        except OSError:
+            pass
 
     add_sources_to_zip(zip_file, tu_files)
+
+    with zipfile.ZipFile(zip_file, 'a') as archive:
+        archive.writestr('compilation_database.json',
+                         json.dumps(compilation_database, indent=2))
 
 
 def main():
@@ -331,29 +391,35 @@ Specify the output""")
                              "actions of which the compiled source file "
                              "matches this path. E.g.: /path/to/*/files")
 
+    parser.add_argument('-v', '--verbose',
+                        action='store_true',
+                        dest='verbose',
+                        help="Enable debug level logging.")
 
     args = parser.parse_args()
 
     # --- Checking the existence of input files. --- #
 
+    if 'verbose' in args and args.verbose:
+        LOG.setLevel(logging.DEBUG)
+
     if args.logfile and not os.path.isfile(args.logfile):
-        print("Compilation database file doesn't exist: {}".format(
-            args.logfile))
+        LOG.error("Compilation database file doesn't exist: %s", args.logfile)
         sys.exit(1)
 
     # --- Do the job. --- #
 
     if args.logfile:
-        with open(args.logfile) as f:
+        with open(args.logfile, encoding="utf-8", errors="ignore") as f:
             compilation_db = json.load(f)
 
         if args.filter:
-            compilation_db = filter(
-                lambda action: fnmatch.fnmatch(action['file'], args.filter),
-                compilation_db)
+            compilation_db = [
+                action for action in compilation_db if fnmatch.fnmatch(
+                    action['file'], args.filter)]
     else:
         if args.filter:
-            print('Warning: In case of using build command the filter has no '
+            LOG.warning('In case of using build command the filter has no '
                   'effect.')
         compilation_db = [{
             'file': '',
@@ -361,6 +427,7 @@ Specify the output""")
             'directory': os.getcwd()}]
 
     zip_tu_files(args.zip, compilation_db, args.list_dependencies)
+    LOG.info("Done.")
 
 
 if __name__ == "__main__":

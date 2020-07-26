@@ -21,9 +21,9 @@ from remote_analyze_api.ttypes import AnalysisNotFoundException
 from remote_analyze_api.ttypes import AnalysisNotCompletedException
 
 LOG = logging.getLogger("CLIENT")
-LOG.setLevel(logging.INFO)
+LOG.setLevel(logging.DEBUG)
 CH = logging.StreamHandler()
-CH.setLevel(logging.INFO)
+CH.setLevel(logging.DEBUG)
 FORMATTER = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 CH.setFormatter(FORMATTER)
@@ -94,7 +94,7 @@ def analyze(args):
             with open(tmp.name) as current_item:
                 with tempfile.NamedTemporaryFile() as list_of_dependecies:
 
-                    command = ["python2", tu_collector.__file__]
+                    command = ["python3", tu_collector.__file__]
                     command.append("-l")
                     command.append("%s" % current_item.name)
                     command.append("-ld")
@@ -198,8 +198,9 @@ def analyze(args):
                                       zip_file.name)
 
                             with RemoteAnalayzerClient(args.host, args.port) as client:
-                                analyze_id = client.getId()
-                                LOG.info("Received id %s", analyze_id)
+                                if analyze_id is None:
+                                    analyze_id = client.getId()
+                                    LOG.info("Received id %s", analyze_id)
 
                                 with open(zip_file.name, "rb") as source_file:
                                     file_content = source_file.read()
@@ -261,11 +262,11 @@ def main():
     parser = argparse.ArgumentParser(description=".....")
 
     parser.add_argument(
-        "--host", type=str, dest="host", default="localhost", help="..."
+        "--host", type=str, dest="host", default="159.107.194.70", help="..."
     )
 
     parser.add_argument("--port", type=str, dest="port",
-                        default="9090", help="...")
+                        default="8321", help="...")
 
     parser.add_argument(
         "--no-cache", dest="use_cache", default=True, action="store_false"
