@@ -285,6 +285,14 @@ def add_sources_to_zip(zip_file, files):
                               "again!", f)
 
 
+def serialize(obj):
+    """JSON serializer for objects not serializable by default json code"""
+
+    if isinstance(obj, set):
+        return list(obj)
+    raise TypeError
+
+
 def zip_tu_files(zip_file, compilation_database,  dependency_list=None, write_mode='w'):
     """
     Collects all files to a zip file which are required for the compilation of
@@ -321,7 +329,7 @@ def zip_tu_files(zip_file, compilation_database,  dependency_list=None, write_mo
         
         if dependency_list:
             with open(dependency_list,'w') as dependencies:
-                dependencies.write(json.dumps(tu_files, indent=2))
+                dependencies.write(json.dumps(tu_files, default=serialize))
             sys.exit(0)
 
     if write_mode == 'a' and os.path.isfile(zip_file):

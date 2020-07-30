@@ -49,7 +49,7 @@ class RemoteAnalyzeHandler:
         Privides a uuid for the analysation.
         """
 
-        LOG.info("Provide an id for the analysis")
+        LOG.debug("Provide an id for the analysis")
 
         new_analyze_id = str(uuid.uuid4())
 
@@ -70,7 +70,7 @@ class RemoteAnalyzeHandler:
         Returns which files are not available from the database.
         """
 
-        LOG.info("Check missing files")
+        LOG.debug("Check missing files")
 
         missing_files = []
         for hash_value in fileHashes:
@@ -84,7 +84,7 @@ class RemoteAnalyzeHandler:
         Prepares the analysation step.
         """
 
-        LOG.info("Store new part sources for analysis %s", analyzeId)
+        LOG.debug("Store new part sources for analysis %s", analyzeId)
 
         file_name = "source"
         part_number = 1

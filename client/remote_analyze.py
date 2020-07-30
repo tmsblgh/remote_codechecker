@@ -21,9 +21,9 @@ from remote_analyze_api.ttypes import AnalysisNotFoundException
 from remote_analyze_api.ttypes import AnalysisNotCompletedException
 
 LOG = logging.getLogger("CLIENT")
-LOG.setLevel(logging.DEBUG)
+LOG.setLevel(logging.INFO)
 CH = logging.StreamHandler()
-CH.setLevel(logging.DEBUG)
+CH.setLevel(logging.INFO)
 FORMATTER = logging.Formatter(
     "%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 CH.setFormatter(FORMATTER)
@@ -262,11 +262,11 @@ def main():
     parser = argparse.ArgumentParser(description=".....")
 
     parser.add_argument(
-        "--host", type=str, dest="host", default="159.107.194.70", help="..."
+        "--host", type=str, dest="host", default="localhost", help="..."
     )
 
     parser.add_argument("--port", type=str, dest="port",
-                        default="8321", help="...")
+                        default="9090", help="...")
 
     parser.add_argument(
         "--no-cache", dest="use_cache", default=True, action="store_false"
