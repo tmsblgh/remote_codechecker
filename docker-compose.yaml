@@ -6,14 +6,13 @@ services:
       context: .
     volumes:
       - /private/tmp/workspace:/workspace
-    depends_on:
-      - redis
     environment:
       - REDIS_HOST=redis
     ports:
       - "9090:9090"
     depends_on:
       - "redis"
+    restart: always
   redis:
     image: redis:3.2.0
     volumes:
@@ -24,6 +23,7 @@ services:
       - /private/tmp/workspace:/workspace
     depends_on:
       - "redis"
+    restart: always
   redis_gui:
     image: marian/rebrow
     ports:
